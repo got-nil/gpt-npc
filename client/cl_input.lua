@@ -50,7 +50,7 @@ function PANEL:Init()
 			return
 		end
 
-		GNIL.GPT.MUTE.ToggleGPTMuted()
+		GNIL.GPT.Mute.ToggleGPTMuted()
 	end
 
 	record_button.Paint = function(s,w,h)
@@ -65,7 +65,7 @@ function PANEL:Init()
 			color = c["mic_recording"]
 		end
 
-		if GNIL.GPT.MUTE.IsGPTMuted() then
+		if GNIL.GPT.Mute.IsGPTMuted() then
 			mictext = "Voice Muted"
 			color = c["mic_muted"]
 			material = mat_mic_off

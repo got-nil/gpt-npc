@@ -166,7 +166,7 @@ MODULE:AddHook("HUDPaint", function()
 	end
 
 	if IsValid(GNIL.GPT.Interaction.GetCurrent()) then
-		if GNIL.GPT.MUTE.IsGPTMuted() then
+		if GNIL.GPT.Mute.IsGPTMuted() then
 			DrawMuted()
 		else
 			DrawStartRecording()

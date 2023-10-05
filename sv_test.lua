@@ -40,6 +40,7 @@ local function websocketFaker(ws)
             "transcription"
         },
         ["gpt"] = {
+            "Hello there! How can I assist you today?",
             {
                 ["object"] = "chat.completion",
                 ["id"] = "chatcmpl-823LECcr4wrT49das0szx6V5inyEm",
@@ -61,7 +62,6 @@ local function websocketFaker(ws)
                     ["prompt_tokens"] = 39
                 }
             },
-            "Hello there! How can I assist you today?"
         },
         ["tts"] = function(data)
             local out = TTS_providers[tonumber(data.provider)]

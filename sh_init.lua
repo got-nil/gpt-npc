@@ -6,11 +6,18 @@ MODULE.description = "Voice Interactable NPC base using GPT."
 MODULE:RequireModule("net")
 MODULE:RequireExtension("net")
 
-GNIL.GPT = GNIL.GPT or {}
+GNIL.GPT = GNIL.GPT or {
+    Classes = {},
+    Interaction = {},
+    Recording = {},
+    Mute = {},
+    Input = {},
+    Output = {}
+}
 
 -- Called by both server and client.
 MODULE.ClientLoad = function()
-    
+
     MODULE:Include("client/cl_scalescreen.lua")
     MODULE:IncludeDirectory("client", {"cl_scalescreen.lua"})
     MODULE:IncludeDirectory("thirdparty")

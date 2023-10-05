@@ -1,5 +1,4 @@
 local MODULE = MODULE
-GNIL.GPT.MUTE = GNIL.GPT.MUTE or {}
 local LocalPlayer = LocalPlayer
 
 if CLIENT then
@@ -14,12 +13,12 @@ if CLIENT then
 		:SendToServer()
 	end
 
-	function GNIL.GPT.MUTE.IsGPTMuted()
+	function GNIL.GPT.Mute.IsGPTMuted()
 		return LocalPlayer()._gpt_muted
 	end
 
-	function GNIL.GPT.MUTE.ToggleGPTMuted()
-		GNIL.GPT.Mute.SetGPTMuted(not GNIL.GPT.MUTE.IsGPTMuted())
+	function GNIL.GPT.Mute.ToggleGPTMuted()
+		GNIL.GPT.Mute.SetGPTMuted(not GNIL.GPT.Mute.IsGPTMuted())
 	end
 
 else
@@ -33,14 +32,7 @@ else
 		return GNIL.Net.CreateReply():WriteBool(mute)
 	end)
 
-	function GNIL.GPT.MUTE.IsGPTMuted(ply)
+	function GNIL.GPT.Mute.IsGPTMuted(ply)
 		return ply._gpt_muted
 	end
-
-	local PLAYER = FindMetaTable("Player")
-
-	function PLAYER:IsGPTMuted()
-		return self._gpt_muted
-	end
-
 end

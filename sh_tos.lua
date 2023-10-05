@@ -157,20 +157,4 @@ else
 		-- Get the TOS state from cache.
 		return GNIL.GPT.TOS["_r"][steamid] == true
 	end
-
-	-- metatable functions and what not
-
-	local PLAYER = FindMetaTable("PLAYER")
-
-	function PLAYER:GPTHasAcceptedTOS()
-		return GNIL.GPT.TOS.HasAccepted(self)
-	end
-
-	function PLAYER:GPTHasSeenTOS()
-		return GNIL.GPT.TOS.HasSeenTOS(self)
-	end
-
-	function PLAYER:GPTShowTOS()
-		GNIL.GPT.TOS.ShowTOS(self)
-	end
 end

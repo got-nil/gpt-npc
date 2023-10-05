@@ -23,7 +23,7 @@ function GNIL.GPT.Tasks.Send(task, _queue_disconnected)
         success, data = task._base.request(
             task,
             unpack(task:GetArguments())
-        )    
+        )
         assert(isbool(success), "Task base '" .. task:GetBase().name .. "' returned an invalid success value")
         if not success then return false end
     end
@@ -48,7 +48,7 @@ end
 -- Remove all pending sent tasks, sending an Error with the
 -- given reason for each. Called when websocket disconnects.
 function GNIL.GPT.Tasks.RemoveAll(reason, _should_log)
-    
+
     -- Call the promise error on each sent task.
     local reason, i = Either(isstring(reason), reason, "All tasks were cancelled without reason."), 0
     for _, v in pairs(GNIL.GPT.Tasks["_r"]) do

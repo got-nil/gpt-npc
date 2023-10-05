@@ -8,7 +8,7 @@ function ENT:SetupNPCData(gender, country_code, display_name, model, age, mood, 
 	self:SetAge(age or self:GetRandomData("age", 1, 100))
 	self:SetMood(mood or self:GetRandomData("mood"))
 	self:SetModel(model or self:GetGenderModel(self:GetGender()))
-	self:SetTextColor(textcolor or ColorRand())
+	-- self:SetTextColor(textcolor or ColorRand())
 end
 
 function ENT:Initialize()
@@ -21,8 +21,6 @@ function ENT:Initialize()
 	self.brain:GetTTSParameters():SetProvider(
 		GNIL_GPT_SPEECH_PROVIDER_ELEVENLABS
 	)
-
-	GNIL.GPT.Websocket:IsConnected()
 
 	self.states = {
 		["Idle"] = {

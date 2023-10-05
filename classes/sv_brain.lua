@@ -2,7 +2,7 @@
 local MODULE, Brain = MODULE, GNIL.Thirdparty.middleclass("Brain"):IncludeMixin(GNIL.ClassMixins.Events)
 ClassAccessorFunc(Brain, {
     Gender = FuncAccessors.ReadOnly("_gender"),
-    TTSParameters = FuncAccessors.ReadOnly("_tts_params")
+    TTSParameters = FuncAccessors.ReadOnly("_tts_params"),
     History = FuncAccessors.ReadOnly("_history")
 })
 
@@ -62,7 +62,7 @@ function Brain:ClearHistory(steamid)
 end
 
 function Brain:GPT(gpt_params)
-    
+
     local task = GNIL.GPT.Tasks.Create("gpt", gpt_params)
     if not task or not task:ValidateArguments() then return false end
     local original_messages = table.Copy(gpt_params:GetMessages())
@@ -81,12 +81,12 @@ function Brain:GPT(gpt_params)
 
     -- Add GPT assistant response to message history if the think
     -- parameters have a history target (user steamid to add to queue).
-    task:OnSuccess(function(_, message)
+    task:OnSuccess(function(message)
 
         -- Only add messages if there was a successful response.
         -- Add original messages (pre-history insertion) to the brains
         -- history queue. This only applies to messages with an associated
-        -- steamid64. 
+        -- steamid64.
         for _, v in ipairs(original_messages) do
             if v.user == nil then continue end
             self._history:AddMessage(v.user, v)
@@ -108,7 +108,7 @@ function Brain:GPT(gpt_params)
 end
 
 function Brain:TTS(text, tts_params)
-    
+
     if not tts_params then
         tts_params = self._tts_params
     end

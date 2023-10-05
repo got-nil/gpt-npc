@@ -10,12 +10,8 @@ MODULE.config = true
 
 --]]
 
-GNIL.GPT = GNIL.GPT or {
-    Classes = {}
-}
-
 MODULE.OnInit = function()
-        
+
     -- Validate configuration before initializing module
     -- since it is required for the websocket connection.
     local success, out = MODULE:Config():Validate({
@@ -32,7 +28,7 @@ MODULE.OnInit = function()
         return false
     end
 
-    -- Require the gwsockets and eightbit modules.    
+    -- Require the gwsockets and eightbit modules.
     local modules = {
         ["gwsockets"] = "GWSockets",
         ["eightbit"] = "eightbit"
@@ -75,6 +71,14 @@ MODULE.OnLoadFinished = function()
             MODULE:log("Websocket failed to connect, retrying.", "warning")
         end
     end)
+
+    -- API connection state for NPC unavailable state.
+    GNIL.GPT.Websocket:AddSignalListener("connected", function()
+		SetGlobal2Bool("GPT.API.Active", true)
+	end)
+	GNIL.GPT.Websocket:AddSignalListener("disconnected", function()
+		SetGlobal2Bool("GPT.API.Active", false)
+	end)
 end
 
 MODULE.OnUnload = function()
