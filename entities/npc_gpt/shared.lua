@@ -30,4 +30,5 @@ function ENT:SetupDataTables()
     self:NetworkVar("String", 2, "CountryCode")
     self:NetworkVar("String", 3, "Gender")
     self:NetworkVar("Entity", 0, "ListeningTarget")
+    self:NetworkVar("Color", 0, "TextColor")
 end
