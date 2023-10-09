@@ -1,5 +1,16 @@
 local MODULE = MODULE
+
+-- Use a local module config file with a validation structure.
 MODULE.config = true
+MODULE.config_structure = {
+    ws_host = {nil, TYPE_STRING, true},
+    ws_token = {nil, TYPE_STRING, true},
+    ws_verify_cert = {true, TYPE_BOOL, false},
+    tts_url = {false, TYPE_STRING, true},
+    relay_ip = {nil, TYPE_STRING, true},
+    relay_port = {nil, TYPE_NUMBER, true},
+    default_system_prompt = {nil, TYPE_STRING, false}
+}
 
 --[[
 
@@ -11,22 +22,6 @@ MODULE.config = true
 --]]
 
 MODULE.OnInit = function()
-
-    -- Validate configuration before initializing module
-    -- since it is required for the websocket connection.
-    local success, out = MODULE:Config():Validate({
-        ws_host = {nil, TYPE_STRING, true},
-        ws_token = {nil, TYPE_STRING, true},
-        ws_verify_cert = {true, TYPE_BOOL, false},
-        tts_url = {false, TYPE_STRING, true},
-        relay_ip = {nil, TYPE_STRING, true},
-        relay_port = {nil, TYPE_NUMBER, true},
-        default_system_prompt = {nil, TYPE_STRING, false}
-    })
-    if not success then
-        MODULE:log("Invalid config with error: " .. out, "error")
-        return false
-    end
 
     -- Require the gwsockets and eightbit modules.
     local modules = {
@@ -59,7 +54,7 @@ MODULE.OnLoad = function()
 end
 
 MODULE.OnLoadFinished = function()
-    
+
     -- Load all base tasks and attempt first websocket connection.
     -- (the websocket will automatically attempt reconnections afterwards)
     -- (Don't log on successful connection since its already logged on the class)
