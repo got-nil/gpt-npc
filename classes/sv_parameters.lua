@@ -8,7 +8,7 @@ ClassAccessorFunc(TTSParameters, {
         force = FORCE_STRING,
         nillable = true,
         validate = function(v)
-            
+
             -- Controversial, I know.
             local acceptedGenders = {
                 ["male"] = true,
@@ -95,7 +95,7 @@ function GPTParameters:AddFunction(name, description, parameters, index)
 end
 
 function GPTParameters:AddMessage(content, role, steamid)
-    
+
     -- Default to user if there isn't a role provided.
     if not role then role = "user" end
     if role != "user" then steamid = nil end
@@ -104,7 +104,7 @@ function GPTParameters:AddMessage(content, role, steamid)
         ["assistant"] = true,
         ["system"] = true
     }
-    
+
     assert(isstring(content), "Provided content must a string")
     assert(validRoles[role], "Provided user role must be valid")
     assert(steamid == nil or isstring(steamid), "Provided steamid must be nil or a string")
@@ -118,7 +118,7 @@ function GPTParameters:AddMessage(content, role, steamid)
 end
 
 function GPTParameters:ToTable()
-    
+
     -- Old messages then new ones.
     local messages = Either(self._history_messages != nil, table.Copy(self._history_messages), {})
     for _, v in ipairs(self._messages) do

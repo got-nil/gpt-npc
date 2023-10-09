@@ -7,7 +7,7 @@ return {
         return recorder:IsInstanceOf(GNIL.GPT.Classes.Recorder)
     end,
     request = function(_, recorder)
-        
+
         -- Always return a set structure just incase.
         local tbl = recorder:ToTable()
         return true, {

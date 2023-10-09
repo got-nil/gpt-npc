@@ -7,7 +7,7 @@ return {
         return gpt_params:IsInstanceOf(GNIL.GPT.Classes.GPTParameters)
     end,
     request = function(_, gpt_params)
-        
+
         local tbl = gpt_params:ToTable()
         if #tbl.messages == 0 then
             return false, "No messages provided"
@@ -27,7 +27,7 @@ return {
         }
     end,
     response = function(task, data)
-        
+
         -- There is no additional processing required.
         return true, {
             data["message"],

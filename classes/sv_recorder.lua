@@ -80,7 +80,7 @@ function Recorder:StopRecording(cancelled)
     )
     if stopped then
         self._recording = false
-        
+
         -- If the recording was cancelled, we have to manually
         -- call Error since the websocket would not reply.
         -- TODO: Delete the task_id on the API to prevent a buildup.

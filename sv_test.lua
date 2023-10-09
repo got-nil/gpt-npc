@@ -2,7 +2,7 @@ local MODULE = MODULE
 
 -- Websocket faker.
 local function websocketFaker(ws)
-    
+
     local TTS_providers = {
         [GNIL_GPT_SPEECH_PROVIDER_ELEVENLABS] = {
             "https://cdn.morgverd.com/static/tests/gpt_npc/elevenlabs.mp3",
@@ -104,7 +104,7 @@ local function websocketFaker(ws)
 
         return false
     end)
-    
+
     return ws
 end
 
@@ -139,15 +139,15 @@ concommand.Add("gpt_tts", function(ply, __, args)
     end
 
     local brain = MODULE._static.brain
-    
+
     -- Set provider
     brain:GetTTSParameters():SetProvider(
         GNIL_GPT_SPEECH_PROVIDER_GOOGLECLOUD
     )
-    
+
     brain:TTS(args[1])
         :OnSuccess(function(url, data)
-            
+
             MODULE:log({url, data})
             playURL(ply, url)
 
@@ -157,13 +157,13 @@ concommand.Add("gpt_tts", function(ply, __, args)
 end)
 
 concommand.Add("gpt_record", function(ply, _, args)
-    
+
     if not ply then
         MODULE:log("Can't be called from server console.")
         return
     end
 
-    local recorder, userid = false, ply:UserID()    
+    local recorder, userid = false, ply:UserID()
     if MODULE._static.recorders[tostring(userid)] then
         recorder = MODULE._static.recorders[tostring(userid)]
     else
@@ -178,7 +178,7 @@ concommand.Add("gpt_record", function(ply, _, args)
     end
 
     if recorder:IsRecording() then
-        
+
         -- End of recording.
         local cancelled = args[1] == "1"
         local out = recorder:StopRecording(cancelled)
@@ -206,7 +206,7 @@ concommand.Add("gpt", function(ply, _, args)
     if args[2] then
         params:AddMessage(args[2], "system")
     end
-    
+
     brain:GPT(params)
         :OnSuccess(function(message, data) MODULE:log(timePrefix() .. "GPT: " .. message) end)
         :OnError(function(_, errorMessage) MODULE:log(timePrefix() .. errorMessage, "error") end)

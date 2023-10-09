@@ -32,7 +32,7 @@ function GNIL.GPT.Interaction.Start(ply, ent)
     GNIL.Net.Create("gpt_interaction")
         :WriteBool(true)
         :WriteEntity(ent)
-        :Send(ply)
+    :Send(ply)
 end
 
 function GNIL.GPT.Interaction.Clear(ply, clientrequest)

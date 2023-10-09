@@ -98,7 +98,7 @@ function GNIL.GPT.Tasks.GetTask(task_id) return GNIL.GPT.Tasks["_r"][task_id] en
 
 -- Create a task with a unique ID.
 function GNIL.GPT.Tasks.Create(name, ...)
-    
+
     -- Keep generating until a taskid is found that doesn't yet exist.
     -- (since technically there is a small chance of duplicates)
     local task_id = nil

@@ -7,11 +7,11 @@
 return {
     name = "tts_voices",
     response = function(_, data)
-        
+
         if data.size == nil or data.voices == nil then
             return false, "Missing required attribute(s)."
         end
-        
+
         return true, {
             data
         }

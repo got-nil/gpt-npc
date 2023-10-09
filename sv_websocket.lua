@@ -8,7 +8,7 @@ function GPTWebsocket:Initialize()
     GNIL.Classes.Websocket.Initialize(
         self,
         conf:Get("ws_host"),
-        conf:Get("ws_verify_cert", true)    
+        conf:Get("ws_verify_cert", true)
     )
 
     -- Set auth header.
@@ -67,16 +67,16 @@ function GPTWebsocket:OnConnected()
     -- TODO: Maybe don't always request the voices if there are alot.
     GNIL.GPT.Tasks.Create("tts_voices")
         :OnSuccess(function(data)
-            
+
             MODULE:log("Cached " .. tostring(data.size) .. " TTS voices from websocket.", "debug")
             GNIL.GPT["_voices"] = data.voices
 
         end)
         :OnError(function()
-        
+
             -- TODO: Re-queue task on failure?
             MODULE:log("Could not cache TTS voices.", "warning")
-        
+
         end)
     :Run()
 

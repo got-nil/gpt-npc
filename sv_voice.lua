@@ -15,15 +15,15 @@ function GNIL.GPT.Voice.Start(userid, voice_id)
     if eightbit.StartRecording(userid, voice_id) then
         GNIL.GPT.Voice["_listening"][tostring(userid)] = true
         return true
-    end 
+    end
     return false
 end
 
 function GNIL.GPT.Voice.Stop(userid, cancelled)
     assert(isnumber(userid), "The provided userid MUST be a number")
     assert(cancelled == nil or isbool(cancelled), "Cancelled MUST either be nil or boolean")
-    
-    if cancelled == nil then cancelled = false end    
+
+    if cancelled == nil then cancelled = false end
     if eightbit.StopRecording(userid, cancelled) then
         GNIL.GPT.Voice["_listening"][tostring(userid)] = nil
         return true

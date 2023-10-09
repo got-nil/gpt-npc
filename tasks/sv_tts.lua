@@ -11,9 +11,9 @@ return {
 
         -- Default to Google Cloud (cheaper) if there
         -- is no set speech provider (required argument).
-        local tbl, provider = tts_params:ToTable(), GNIL_GPT_SPEECH_PROVIDER_GOOGLECLOUD        
+        local tbl, provider = tts_params:ToTable(), GNIL_GPT_SPEECH_PROVIDER_GOOGLECLOUD
         if tbl.provider != nil then provider = tbl.provider end
-    
+
         return true, {
             ["provider"] = tostring(provider),
             ["voice_id"] = tbl.voice_id,
