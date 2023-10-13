@@ -41,6 +41,9 @@ MODULE.OnInit = function()
         MODULE:log("The module requires a modified build of eightbit.", "error")
         return false
     end
+
+    --  Reset the websocket class, should re-initialize each time.
+    GNIL.GPT.Websocket = nil
 end
 
 MODULE.OnLoad = function()
@@ -78,4 +81,5 @@ end
 
 MODULE.OnUnload = function()
     GNIL.GPT.Tasks.RemoveAll("GPT Module is being unloaded.", true)
+    GNIL.GPT.Websocket:CloseNow()
 end

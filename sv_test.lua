@@ -82,10 +82,8 @@ local function websocketFaker(ws)
 
     -- Intercept messages being sent. Stop them from actually being queued (since the socket
     -- doesn't actually exist here) and instead directly resolve the task promise with fake data.
-    ws:AddEventListener("write", function(message)
-
-        local data = util.JSONToTable(message)
-        if not data then MODULE:log("WS Faker could not decode write data.", "error") return end
+    ws:AddEventListener("write", function(_, data)
+        if not data then return end
 
         local fake = fakeTaskResponses[data.name]
         if not fake then MODULE:log("WS Faker invalid task name '" .. data.name .. "'", "error") return end
