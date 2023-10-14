@@ -46,16 +46,7 @@ MODULE.OnInit = function()
     GNIL.GPT.Websocket = nil
 end
 
-MODULE.OnLoad = function()
-
-    -- Load all classes in directory.
-    GNIL.GPT.Classes = GNIL.Loader.DirectoryMap(MODULE:ResolvePath("classes"))
-    MODULE:log("Finished loading classes.", "debug")
-
-    -- Add client files.
-    MODULE.ClientLoad()
-end
-
+MODULE.OnLoad = function() MODULE.SharedLoad() end
 MODULE.OnLoadFinished = function()
 
     -- Load all base tasks and attempt first websocket connection.

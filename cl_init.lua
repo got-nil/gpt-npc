@@ -30,6 +30,5 @@ MODULE.OnLoad = function()
 		weight = 100,
 	})
 
-	MODULE.ClientLoad()
-
+	MODULE.SharedLoad()
 end
