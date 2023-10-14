@@ -18,6 +18,7 @@ rdmdata.countrycode = function() return countryindex[math.random(#countryindex)]
 rdmdata.country = function() return countryindex[rdmdata.countrycode()] end
 rdmdata.age = function(min, max) return math.random(math.max(1, min or 1), math.max(2, max or 2)) end
 rdmdata.gender = function() return genders[math.random(#genders)] end
+rdmdata.feminine = function() return math.random(2) == 1 end
 rdmdata.GetCountry = function(indx) return countries[indx] end
 rdmdata.GetGenderModel = function(gender)
 	local mdls = gendermodels[gender]

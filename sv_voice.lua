@@ -51,7 +51,7 @@ function GNIL.GPT.Voice.AllRecording(as_players)
     local players = {}
     for _, v in ipairs(userids) do
         local ply = Player(v)
-        if ply:IsValid() then
+        if IsValid(ply) then
             table.insert(players, ply)
         end
     end

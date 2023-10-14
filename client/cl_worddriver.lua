@@ -55,6 +55,8 @@ function wordDriver:InjestData(data)
 	self.alignment = data.alignment or self.alignment
 	self.starttime = SysTime()
 
+	surface.SetFont(self.font)
+
 	if driver == "gcloud" then
 		local word_data = data.timepoints.data
 		local wordtbl, timetbl = {}, {}
@@ -72,7 +74,8 @@ function wordDriver:InjestData(data)
 		self.wordtbl 	= wordtbl
 		self.timetbl 	= timetbl
 		self.nexttime = self.starttime + timetbl[1]
-		-- self.active = true
+		local _, th, tw = string.TextWrap(self.font, self.text, self.maxwidth)
+		self.fulltextwide, self.fulltexttall = tw, th
 		return
 	end
 
@@ -92,7 +95,7 @@ function wordDriver:InjestData(data)
 	self.wordtbl = wordtbl
 	self.timetbl = timetbl
 	self.nexttime = self.starttime + timetbl[1]
-	-- self.active = true
+	self.fulltextwide, self.fulltexttall = surface.GetTextSize(self.text)
 end
 
 function wordDriver:Think()
@@ -105,6 +108,9 @@ function wordDriver:Think()
 		self.drawtext = txt
 		self.nexttime = self.starttime + self.timetbl[self.wordindex]
 		self.wordindex = self.wordindex + 1
+
+		surface.SetFont(self.font)
+		self.textwide, self.texttall = surface.GetTextSize(self.drawtext)
 
 		if IsValid(self.parent) then
 			self.parent.message.size = {tall = tall, wide = wide}
@@ -121,8 +127,15 @@ end
 
 function wordDriver:DrawText(x, y)
 	if not self.active and self.wordindex < #self.wordtbl then return end
-	draw.DrawText(self.drawtext,self.font,x + 1,y + 1,c["black"],self.alignment) -- lol
-	draw.DrawText(self.drawtext,self.font,x,y,self.color,self.alignment)
+	draw.DrawTextShadow(self.drawtext,self.font,x,y,self.color,self.alignment)
+end
+
+function wordDriver:GetTextSize()
+	return self.textwide or 0, self.texttall or 0
+end
+
+function wordDriver:GetFullTextSize()
+	return self.fulltextwide or 0, self.fulltexttall or 0
 end
 
 function wordDriver:StartTypeWriter()
@@ -134,10 +147,33 @@ end
 
 function wordDriver:SetFont(font)
 	self.font = font or "ChatMessage.Small"
+	local _, th, tw = string.TextWrap(self.font, self.text, self.maxwidth)
+	self.fulltextwide, self.fulltexttall = tw, th
+end
+
+function wordDriver:Start()
+	self.active = true
+end
+
+function wordDriver:Stop(forcefinish)
+	if forcefinish then
+		self.wordindex = #self.wordtbl
+	end
+	self.active = false
+end
+
+function wordDriver:SetMaxWidth(n)
+	self.maxwidth = n
+	local _, th, tw = string.TextWrap(self.font, self.text, self.maxwidth)
+	self.fulltextwide, self.fulltexttall = tw, th
 end
 
 function wordDriver:__tostring()
 	return "[wordDriver] " .. self.parent and tostring(self.parent) or "Standalone"
+end
+
+function IsWordDriver(obj)
+	return getmetatable(obj) == wordDriver
 end
 
 wordDriver.__index = wordDriver
@@ -145,7 +181,8 @@ wordDriver.__index = wordDriver
 local function newWordDriver(pnl)
 	local driver = setmetatable({
 		active = false,
-		maxwidth = pnl.maxwidth or 100,
+
+		maxwidth = pnl and pnl.maxwidth or 100,
 		text = "",
 		drawtext = "",
 		wordindex = 1,
@@ -153,7 +190,9 @@ local function newWordDriver(pnl)
 
 		alignment = TEXT_ALIGN_LEFT,
 		font = "ChatMessage.Small",
-		color = c["white"]
+		color = c["white"],
+
+		worddriver = true
 	}, wordDriver)
 
 	if IsValid(pnl) then

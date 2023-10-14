@@ -5,6 +5,7 @@ local c = {
 	["mic_tos"] = Color(114, 0, 0),
 	["mic_hover"] = Color(177, 177, 177),
 	["text_placeholder"] = Color(238, 238, 238, 238),
+	["selfchat"] = Color(36,181,233)
 }
 
 local mat_arrow = Material("gpt_npc/icons/expand_less.png", "smooth mips")
@@ -174,6 +175,10 @@ function PANEL:GetEnterAllowed()
 	return self.enter_allowed
 end
 
+local function EstimateReadingTime(text, wpm)
+	local wordCount = istable(text) and text or string.Explode(" ", text)
+	return (#wordCount / wpm) * 60
+end
 local maxdist = 200 * 200
 function PANEL:TextInput()
 	local inpt = vgui.Create("DTextEntry")
@@ -218,6 +223,12 @@ function PANEL:TextInput()
 		table.insert(self.input_history, val)
 
 		if ent:GetPos():DistToSqr(LocalPlayer():GetPos()) <= maxdist and ent:GetCurrentState() == ent.STATE["Idle"] then
+			-- adding the message to the current message log
+			self:GetParent():GetParent():AddMessage(
+				{LocalPlayer():GetName(), c["selfchat"]},
+				{text = val, length = EstimateReadingTime(val, 200)},
+				TEXT_ALIGN_RIGHT)
+
 			GNIL.GPT.Input.SendPrompt(val)
 		end
 

@@ -1,6 +1,9 @@
 local MODULE = MODULE
 
 function ENT:Initialize()
+	self.isgptnpc = true
+	self._history = GNIL.GPT.Classes.History:New()
+
 	self:AddCallback( "BuildBonePositions", function( ent, _ )
 		ent:HeadLook()
 	end)
@@ -30,8 +33,7 @@ local mindist = 100 * 100
 local off = Vector(0,0,64)
 function ENT:DrawTranslucent()
 	self:DrawModel()
-	-- !!! repalce all this later
-	if true then return end
+	if true then return end -- !!! repalce all this later
 	if self:GetCurrentState() == self.STATE["Listening"] and self:GetListeningTarget() == LocalPlayer() then
 		self:DrawState()
 	end
@@ -130,4 +132,8 @@ function ENT:OnRemove()
 		self.voice = nil
 	end
 	self:AltRemove()
+end
+
+function ENT:History()
+	return self._history
 end

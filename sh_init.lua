@@ -7,23 +7,24 @@ MODULE:RequireModule("net")
 MODULE:RequireExtension("net")
 
 GNIL.GPT = GNIL.GPT or {
-    Classes = {},
-    Interaction = {},
-    Recording = {},
-    Mute = {},
-    Input = {},
-    Output = {}
+	Classes = {},
+	Interaction = {},
+	Recording = {},
+	Mute = {},
+	Input = {},
+	Output = {},
+	Subtitles = {}
 }
 
 -- Called by both server and client.
 MODULE.ClientLoad = function()
 
-    MODULE:Include("client/cl_scalescreen.lua")
-    MODULE:IncludeDirectory("client", {"cl_scalescreen.lua"})
-    MODULE:IncludeDirectory("thirdparty")
+	MODULE:Include("client/cl_scalescreen.lua")
+	MODULE:IncludeDirectory("client", {"cl_scalescreen.lua"})
+	MODULE:IncludeDirectory("thirdparty")
 
-    -- Finally, add the actual NPC entities.
-    MODULE:LoadDirectories("entities")
+	-- Finally, add the actual NPC entities.
+	MODULE:LoadDirectories("entities")
 end
 
 -- GPT error enums.
