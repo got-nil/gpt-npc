@@ -1,7 +1,7 @@
 local MODULE = MODULE
-local LocalPlayer = LocalPlayer()
 
 if CLIENT then
+	local LocalPlayer = LocalPlayer()
 	local c = {
 		["white"] = Color(244,244,244),
 		["blue"] = Color(76,250,230),
