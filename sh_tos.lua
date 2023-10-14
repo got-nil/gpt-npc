@@ -11,6 +11,9 @@ GNIL.GPT.TOS = GNIL.GPT.TOS or {
 
 if CLIENT then
 	local LocalPlayer = LocalPlayer
+
+	local ScrW, ScrH = ScrW, ScrH
+	local function ss(n) return n * ( ScrW() / 1920 ) end
 	-- Receive hash request, sending back if there is one.
 	MODULE:GetExtension("net"):Receive("gpt_tos", function()
 		local out = LocalPlayer():GetPData("gpt_tos_hash")
