@@ -1,4 +1,5 @@
-local MODULE = MODULE
+local MODULE, Net = MODULE, MODULE:GetExtension("net")
+local ss = GNIL.UI.ScreenScale
 GNIL.GPT.TOS = GNIL.GPT.TOS or {
 	["_r"] = {},
 	["_c"] = nil
@@ -11,8 +12,9 @@ GNIL.GPT.TOS = GNIL.GPT.TOS or {
 
 if CLIENT then
 	local LocalPlayer = LocalPlayer
+
 	-- Receive hash request, sending back if there is one.
-	MODULE:GetExtension("net"):Receive("gpt_tos", function()
+	Net:Receive("gpt_tos", function()
 		local out = LocalPlayer():GetPData("gpt_tos_hash")
 		local reply = GNIL.Net.CreateReply():WriteBool(out != nil)
 		if out != nil then
@@ -20,6 +22,10 @@ if CLIENT then
 		end
 		GNIL.GPT.TOS["_c"] = Either(out == nil, false, out)
 		return reply
+	end)
+
+	Net:Receive("gpt_tos_show", function()
+		GNIL.GPT.TOS.OpenTOS()
 	end)
 
 	function GNIL.GPT.TOS.OpenTOS()
@@ -101,7 +107,7 @@ else
 	-- the TOS. Send the correct hash back and cache state.
 	GNIL.Net.AddNetworkStrings("gpt_tos", "gpt_tos_show")
 
-	MODULE:GetExtension("net"):Receive("gpt_tos", function(_, ply)
+	Net:Receive("gpt_tos", function(_, ply)
 		local steamid = ply:SteamID64()
 		ply._gpt_tos_seen = true
 		-- Remove request. Player TOS state is being removed.

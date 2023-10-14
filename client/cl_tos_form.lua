@@ -1,4 +1,6 @@
-
+local MODULE = MODULE
+local ScrW, ScrH = ScrW, ScrH
+local ss = GNIL.UI.ScreenScale
 
 local terms_of_service_text = [[Non at nisi nemo illo ad. Exercitationem repudiandae asperiores est et temporibus est est veniam. Modi ab et similique dicta quos odit dicta delectus debitis. Est voluptatem dolorum dolorem sunt ipsam qui vitae. Ut soluta voluptates reiciendis.
 Sed ullam dolore qui quia corrupti sed. Accusantium laborum labore ea unde. Omnis saepe dolor et sunt. Id impedit rem sit perferendis quod. Qui est mollitia dignissimos nostrum facilis. Natus fuga et aut eaque consequuntur laborum repudiandae itaque occaecati.
@@ -17,14 +19,6 @@ Ad voluptatem aperiam corrupti magnam voluptatem ullam. Voluptatem ea dolorem se
 Quia voluptatem consequatur voluptas. Ratione necessitatibus repudiandae voluptates cupiditate saepe. Facilis ut rerum ducimus sit temporibus nemo natus sint.]]
 
 local tos_accept_text = "I, {NAME}, hereby acknowledge that by clicking \"I Agree\" or accessing and using the services, I have read and fully understand the terms of service, including all terms and conditions, policies, guidelines, and any other relevant information provided by the company. I consent to be bound by these terms and agree to comply with all applicable laws and regulations. If I do not agree with any of these terms, I will not use the services. My continued use of the services after the effective date of any modifications to the terms constitutes my acceptance of such modifications."
-
--- !!! this needs to be moved to the string util file later
-function string.Interpolate( str, lookuptable )
-	return string.gsub( str, "{([_%a][_%w]*)}", lookuptable)
-end
-
-local ScrW, ScrH = ScrW, ScrH
-local function ss(n) return n * ( ScrW() / 1920 ) end
 
 local alert = Material("virtualraptor/images/alert.png", "smooth mips")
 local gtl = Material("virtualraptor/gradients/topleft.png", "smooth mips")
@@ -267,7 +261,7 @@ function PANEL:Init()
 	decline:SetText("I Disagree")
 	decline:SetTextColor(c["white"])
 	decline.Paint = function(slf,w,h)
-		GPT.UI.DrawRoundedMask(ss(5),0,0,w,h, function()
+		GNIL.UI.DrawRoundedMask(ss(5),0,0,w,h, function()
 			surface.SetDrawColor(c["back_grey"])
 			surface.DrawRect(0,0,w,h)
 			local tint = slf:IsHovered() and c["whiteish"] or c["tint_grey"]
@@ -303,7 +297,7 @@ function PANEL:Init()
 	accept:SetText("I Agree")
 	accept:SetTextColor(c["white"])
 	accept.Paint = function(slf,w,h)
-		GPT.UI.DrawRoundedMask(ss(5),0,0,w,h, function()
+		GNIL.UI.DrawRoundedMask(ss(5),0,0,w,h, function()
 			surface.SetDrawColor(c["accept_green"])
 			surface.DrawRect(0,0,w,h)
 			local tint = slf:IsHovered() and c["accept_tint_hover"] or c["accept_tint_idle"]
@@ -342,12 +336,12 @@ local scale = 6
 function PANEL:Paint(w,h)
 	local oc = DisableClipping(true)
 
-	GPT.UI.DrawRoundedExMask(h * .05,0,0,w,h, function()
+	GNIL.UI.DrawRoundedExMask(h * .05,0,0,w,h, function()
 		surface.SetDrawColor(c["white_tint"])
 		surface.DrawRect(0,0,w,h)
 	end,false,true,true,false)
 
-	GPT.UI.DrawRoundedExMask(h * .05,1,1,w - 2,h - 2, function()
+	GNIL.UI.DrawRoundedExMask(h * .05,1,1,w - 2,h - 2, function()
 		surface.SetDrawColor(c["back_black"])
 		surface.DrawRect(1,1,w - 2,h - 2)
 

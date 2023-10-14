@@ -9,7 +9,7 @@ function ENT:SetupNPCData(gender, country_code, display_name, model, age, mood, 
 	self:SetIsFeminine(Either(isbool(fem), fem, self:GetRandomData("feminine")))
 	self:SetMood(mood or self:GetRandomData("mood"))
 	self:SetModel(model or self:GetGenderModel(self:GetGender()))
-	self:SetTextColor(textcolor or color_white)
+	self:SetTextColor((textcolor or color_white):ToVector())
 end
 
 function ENT:Initialize()

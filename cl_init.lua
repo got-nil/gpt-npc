@@ -1,5 +1,7 @@
 local MODULE = MODULE
 
+MODULE:RequireModule("ui")
+
 MODULE.OnLoad = function()
 
 	surface.CreateFont("ChatMessage.Small", {

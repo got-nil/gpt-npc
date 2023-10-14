@@ -83,7 +83,7 @@ local function InstallAnimationMethods(meta)
 			end
 		end
 
-		local animation = GPT.Thirdparty.tween(
+		local animation = GNIL.Thirdparty.tween(
 			((length == 0 and 1 or length) or 1) * 1,
 			data.subject or self,
 			data.target or {},
