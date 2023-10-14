@@ -22,7 +22,7 @@ local tos_accept_text = "I, {NAME}, hereby acknowledge that by clicking \"I Agre
 function string.Interpolate( str, lookuptable )
 	return string.gsub( str, "{([_%a][_%w]*)}", lookuptable)
 end
-
+GPT.UI = GPT.UI or {}
 local ScrW, ScrH = ScrW, ScrH
 local function ss(n) return n * ( ScrW() / 1920 ) end
 
@@ -48,6 +48,56 @@ local c = {
 	back_icon_black = Color(34,34,34, 100),
 	alert_red = Color(184,27,27),
 }
+
+local renderTarget
+local MaskMaterial = CreateMaterial("!mask_material_rounded", "UnlitGeneric", {
+	["$translucent"] = 1,
+	["$vertexalpha"] = 1,
+	["$alpha"] = 1,
+})
+
+local function renderTargetGen()
+	renderTarget = GetRenderTargetEx("rendertarget_roundedbox_material", ScrW(), ScrH(), RT_SIZE_FULL_FRAME_BUFFER, MATERIAL_RT_DEPTH_NONE, 2, CREATERENDERTARGETFLAGS_UNFILTERABLE_OK, IMAGE_FORMAT_RGBA8888)
+end
+
+renderTargetGen()
+
+hook.Add( "OnScreenSizeChanged", "update_mask", function()
+	renderTargetGen()
+end)
+
+local function drawRoundedMask(radius, x, y, w, h, drawfunc, tl, tr, bl, br)
+	if not renderTarget then
+		renderTargetGen()
+	end
+
+	render.PushRenderTarget(renderTarget)
+		render.OverrideAlphaWriteEnable(true, true)
+		render.Clear(0, 0, 0, 0)
+
+			drawfunc()
+
+		render.OverrideBlendFunc(true, BLEND_ZERO, BLEND_SRC_ALPHA, BLEND_DST_ALPHA, BLEND_ZERO)
+		draw.RoundedBoxEx(radius, x, y, w, h, c["white"], tl, tr, bl, br)
+		render.OverrideBlendFunc(false)
+		render.OverrideAlphaWriteEnable(false)
+
+	render.PopRenderTarget()
+		MaskMaterial:SetTexture("$basetexture", renderTarget)
+		draw.NoTexture()
+		surface.SetDrawColor(c["white"])
+		surface.SetMaterial(MaskMaterial)
+		render.SetMaterial(MaskMaterial)
+	render.DrawScreenQuad()
+end
+
+function GPT.UI.DrawRoundedMask(cornerRadius, x, y, w, h, drawFunc)
+	drawRoundedMask(cornerRadius, x, y, w, h, drawFunc, true, true, true, true)
+end
+
+function GPT.UI.DrawRoundedExMask(cornerRadius, x, y, w, h, drawFunc, roundTopLeft, roundTopRight, roundBottomLeft, roundBottomRight)
+	drawRoundedMask(cornerRadius, x, y, w, h, drawFunc, roundTopLeft, roundTopRight, roundBottomLeft, roundBottomRight)
+end
 
 --[[
 	TOS UI
