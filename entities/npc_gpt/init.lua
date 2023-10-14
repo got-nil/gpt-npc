@@ -70,7 +70,7 @@ function ENT:Initialize()
 		["Generic"] = {
 			OnDamage = function(slf, dmginfo, atker) end,
 			OnUse = function(slf, ply)
-				ply:ChatMessage(self:GetNameColor(), self:GetDisplayName(), Color(246, 246, 246), ": I'm a little busy right now.")
+				ply:ChatMessage(self:GetNameColor():ToColor(), self:GetDisplayName(), Color(246, 246, 246), ": I'm a little busy right now.")
 			end,
 		}
 	}
@@ -112,7 +112,7 @@ end
 function ENT:StartInteraction(ply)
 	local cply = self:GetListeningTarget()
 	if IsValid(cply) and cply ~= ply then
-		ply:ChatMessage(self:GetNameColor(), self:GetDisplayName(), Color(246, 246, 246), ": I'm a little busy right now.")
+		ply:ChatMessage(self:GetNameColor():ToColor(), self:GetDisplayName(), Color(246, 246, 246), ": I'm a little busy right now.")
 		self.nextusecooldown[ply] = CurTime() + 1.5
 		return false
 	end

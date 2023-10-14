@@ -191,12 +191,12 @@ Net:Receive("gpt_output_data", function()
 	local panl = GNIL.GPT.Interaction.GetCurrent()
 	if not panl then
 		local len = data.driver == "gcloud" and data.timepoints.len or data.length
-		GNIL.GPT.Subtitles.Add(ent:GetDisplayName(), data, len, nil, ent:GetNameColor())
+		GNIL.GPT.Subtitles.Add(ent:GetDisplayName(), data, len, nil, ent:GetNameColor():ToColor())
 		return
 	end
 
 	if panl.Entity ~= ent then return end
-	local msg = {{ent:GetDisplayName(), ent:GetNameColor(), ent.GetTextFont and npc:GetTextFont()},data}
+	local msg = {{ent:GetDisplayName(), ent:GetNameColor():ToColor(), ent.GetTextFont and npc:GetTextFont()},data}
 	ent:History():AddMessage("local", msg)
 	panl:AddMessage(msg[1], msg[2])
 end)
