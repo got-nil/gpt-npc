@@ -1,7 +1,7 @@
 local MODULE = MODULE
 
 if CLIENT then
-	local LocalPlayer = LocalPlayer()
+	local LocalPlayer = LocalPlayer
 	local c = {
 		["white"] = Color(244,244,244),
 		["blue"] = Color(76,250,230),
@@ -14,15 +14,15 @@ if CLIENT then
 			:WriteBool(state)
 			:OnReply(function(succ)
 				if not succ then return end
-				LocalPlayer._gpt_muted = net.ReadBool()
-				local text = LocalPlayer._gpt_muted and "muted" or "unmuted"
+				LocalPlayer()._gpt_muted = net.ReadBool()
+				local text = LocalPlayer()._gpt_muted and "muted" or "unmuted"
 				chat.AddText(c["white"],"[",c["blue"],"NPC Mute",c["white"],"] The NPC's are now ",c[text],text,c["white"]," from hearing you.")
 			end)
 		:SendToServer()
 	end
 
 	function GNIL.GPT.Mute.IsGPTMuted()
-		return LocalPlayer._gpt_muted
+		return LocalPlayer()._gpt_muted
 	end
 
 	function GNIL.GPT.Mute.ToggleGPTMuted()

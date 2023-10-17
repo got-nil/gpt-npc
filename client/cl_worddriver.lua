@@ -1,10 +1,60 @@
+local alignments = {
+	["left"] = TEXT_ALIGN_LEFT,
+	["center"] = TEXT_ALIGN_CENTER,
+	["right"] = TEXT_ALIGN_RIGHT,
+	[TEXT_ALIGN_LEFT] = TEXT_ALIGN_LEFT,
+	[TEXT_ALIGN_CENTER] = TEXT_ALIGN_CENTER,
+	[TEXT_ALIGN_RIGHT] = TEXT_ALIGN_RIGHT,
+	["LEFT"] = TEXT_ALIGN_LEFT,
+	["CENTER"] = TEXT_ALIGN_CENTER,
+	["RIGHT"] = TEXT_ALIGN_RIGHT,
+	["<"] = TEXT_ALIGN_LEFT,
+	["|"] = TEXT_ALIGN_CENTER,
+	[">"] = TEXT_ALIGN_RIGHT,
+}
 
 local c = {
 	["black"] = color_black,
 	["white"] = color_white
 }
 
-local wordDriver = {}
+local WordDriver = GNIL.Thirdparty.middleclass("WordDriver"):IncludeMixin(GNIL.ClassMixin.Events)
+ClassAccessorFunc(WordDriver, {
+	Active  = {"active", FORCE_BOOL},
+	Text  = {"text", FORCE_STRING},
+	Alignment = {var = "alignment", force = FORCE_NUMBER, set = function(self, align)
+		if alignments[align] then
+			self.alignment = alignments[align]
+		end
+	end},
+	FullTextWide = FuncAccessors.ReadOnly("fulltextwide"),
+	FullTextTall = FuncAccessors.ReadOnly("fulltexttall"),
+	Color = {"color", FORCE_COLOR},
+	Font = {var = "font", force = FORCE_STRING, set = function(self, font)
+		self.font = font or "ChatMessage.Small"
+		local _, th, tw = string.TextWrap(self.font, self.text, self.maxwidth)
+		self.fulltextwide, self.fulltexttall = tw, th
+	end},
+	MaxWidth = {var = "maxwidth", force = FORCE_NUMBER, set = function(self, n)
+		self.maxwidth = n
+		local _, tw, th = string.TextWrap(self.font, self.text, self.maxwidth)
+		self.fulltextwide, self.fulltexttall = tw, th
+	end}
+})
+
+function WordDriver:Initialize(maxwidth, font, color, alignment)
+	self.maxwidth = maxwidth or 100
+	self.alignment = alignment or TEXT_ALIGN_LEFT
+	self.font = font or "ChatMessage.Small"
+	self.color = color or c["white"]
+
+	self.active = false
+	self.worddriver = true
+	self.text = ""
+	self.drawtext = ""
+	self.wordindex = 1
+	self.nexttime = 0
+end
 
 --[[[
 	example input
@@ -47,7 +97,7 @@ local wordDriver = {}
 		}
 --]]
 
-function wordDriver:InjestData(data)
+function wordDriver:InjestData( data )
 	local driver = data.driver
 
 	self.font = data.font or self.font
@@ -66,17 +116,14 @@ function wordDriver:InjestData(data)
 			timetbl[i] = dat[2]
 		end
 
-		if IsValid(self.parent) then
-			self.parent.message.message = self.text
-		end
-
 		self.text 		= data.message.text
 		self.wordtbl 	= wordtbl
 		self.timetbl 	= timetbl
 		self.nexttime = self.starttime + timetbl[1]
 		local _, th, tw = string.TextWrap(self.font, self.text, self.maxwidth)
 		self.fulltextwide, self.fulltexttall = tw, th
-		return
+
+		return self
 	end
 
 	local duration = data.length * .95
@@ -88,14 +135,13 @@ function wordDriver:InjestData(data)
 		timetbl[i] = avgdelay * i
 	end
 
-	if IsValid(self.parent) then
-		self.parent.message.message = self.text
-	end
 	self.text = text
 	self.wordtbl = wordtbl
 	self.timetbl = timetbl
 	self.nexttime = self.starttime + timetbl[1]
 	self.fulltextwide, self.fulltexttall = surface.GetTextSize(self.text)
+
+	return self
 end
 
 function wordDriver:Think()
@@ -106,16 +152,11 @@ function wordDriver:Think()
 		local txt, tall, wide = string.TextWrap(self.font, newtext, self.maxwidth)
 
 		self.drawtext = txt
+		self.textwide, self.texttall = tall, wide
 		self.nexttime = self.starttime + self.timetbl[self.wordindex]
 		self.wordindex = self.wordindex + 1
 
-		surface.SetFont(self.font)
-		self.textwide, self.texttall = surface.GetTextSize(self.drawtext)
-
-		if IsValid(self.parent) then
-			self.parent.message.size = {tall = tall, wide = wide}
-			self.parent:InvalidateLayout()
-		end
+		self:EmitSignal("updatelayout")
 
 		if self.wordindex > #self.wordtbl then
 			self.active = false
@@ -125,83 +166,40 @@ function wordDriver:Think()
 	end
 end
 
-function wordDriver:DrawText(x, y)
-	if not self.active and self.wordindex < #self.wordtbl then return end
-	draw.DrawTextShadow(self.drawtext,self.font,x,y,self.color,self.alignment)
+function WordDriver:Start()
+	self.active = true
 end
 
-function wordDriver:GetTextSize()
-	return self.textwide or 0, self.texttall or 0
+function WordDriver:Stop(force)
+	if force then
+		self.wordindex = #self.wordtbl
+	end
+	self.active = false
+end
+
+function WordDriver:Reset(start)
+	self.active = tobool(start)
+	self.starttime = SysTime()
+	self.nexttime = self.starttime + self.timetbl[1]
+	self.wordindex = 1
+	self.drawtext = ""
 end
 
 function wordDriver:GetFullTextSize()
 	return self.fulltextwide or 0, self.fulltexttall or 0
 end
 
-function wordDriver:StartTypeWriter()
-	self.active = true
+function WordDriver:DrawText(x, y)
+	if not self.active and self.wordindex < #self.wordtbl then return end
+	draw.DrawTextShadow(self.drawtext,self.font,x,y,self.color,self.alignment)
 end
 
-function wordDriver:OnFinished()
-end
+function WordDriver:OnFinished() end
 
-function wordDriver:SetFont(font)
-	self.font = font or "ChatMessage.Small"
-	local _, th, tw = string.TextWrap(self.font, self.text, self.maxwidth)
-	self.fulltextwide, self.fulltexttall = tw, th
-end
-
-function wordDriver:Start()
-	self.active = true
-end
-
-function wordDriver:Stop(forcefinish)
-	if forcefinish then
-		self.wordindex = #self.wordtbl
-	end
-	self.active = false
-end
-
-function wordDriver:SetMaxWidth(n)
-	self.maxwidth = n
-	local _, th, tw = string.TextWrap(self.font, self.text, self.maxwidth)
-	self.fulltextwide, self.fulltexttall = tw, th
-end
-
-function wordDriver:__tostring()
-	return "[wordDriver] " .. self.parent and tostring(self.parent) or "Standalone"
+function WordDriver:__tostring()
+	return "[wordDriver]" .. self.parent and tostring(self.parent) or "Standalone"
 end
 
 function IsWordDriver(obj)
-	return getmetatable(obj) == wordDriver
+	return IsInstanceOf(obj, WordDriver)
 end
-
-wordDriver.__index = wordDriver
-
-local function newWordDriver(pnl)
-	local driver = setmetatable({
-		active = false,
-
-		maxwidth = pnl and pnl.maxwidth or 100,
-		text = "",
-		drawtext = "",
-		wordindex = 1,
-		nexttime = 0,
-
-		alignment = TEXT_ALIGN_LEFT,
-		font = "ChatMessage.Small",
-		color = c["white"],
-
-		worddriver = true
-	}, wordDriver)
-
-	if IsValid(pnl) then
-		driver.parent = pnl
-		pnl.worddriver = driver
-		return
-	end
-
-	return driver
-end
-
-GNIL.GPT.WordDriver = newWordDriver

@@ -32,12 +32,12 @@ function PANEL:Init()
 	end
 end
 
-function PANEL:AddMessage(...)
+function PANEL:AddMessage(speaker, worddriver)
 	local msg = self:Add("gpt_chatmessage")
-	msg:AddMessage(...)
-	msg:Dock( TOP )
-	msg:DockPadding( 25, 0, 25, 0 )
-	msg:DockMargin( 0, 0, 0, 4 )
+	msg:SetMessage(speaker, worddriver)
+	msg:Dock(TOP)
+	msg:DockPadding(25, 0, 25, 0)
+	msg:DockMargin(0, 0, 0, 4)
 	self:InvalidateLayout()
 	return msg
 end

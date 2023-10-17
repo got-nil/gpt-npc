@@ -21,6 +21,7 @@ function PANEL:Init()
 	local record_button = self:Add("DButton")
 	self.record_button = record_button
 	record_button.recording = false
+	record_button.mictext = "Voice Idle"
 	record_button:SetText("")
 	record_button:Dock(RIGHT)
 
@@ -209,12 +210,12 @@ function PANEL:TextInput()
 		surface.SetMaterial(mat_arrow)
 
 		DisableClipping(true)
-			surface.DrawTexturedRectRotated(h * -.25, h * .5,size,size,-90)
+			surface.DrawTexturedRectRotated(h * -.25, h * .5, size, size,-90)
 		DisableClipping(false)
 
 		surface.SetFont("ChatMessage.Small")
-		local tw,_ = surface.GetTextSize(text)
-		surface.DrawRect(0, h - 2,tw + 5,2)
+		local tw, _ = surface.GetTextSize(text)
+		surface.DrawRect(0, h - 2, tw + 5,2)
 	end
 
 	inpt.OnEnter = function(s)
@@ -224,10 +225,11 @@ function PANEL:TextInput()
 
 		if ent:GetPos():DistToSqr(LocalPlayer():GetPos()) <= maxdist and ent:GetCurrentState() == ent.STATE["Idle"] then
 			-- adding the message to the current message log
-			self:GetParent():GetParent():AddMessage(
-				{LocalPlayer():GetName(), c["selfchat"]},
-				{text = val, length = EstimateReadingTime(val, 200)},
-				TEXT_ALIGN_RIGHT)
+			local speaker = GNIL.GPT.Classes.Speaker(LocalPlayer():GetName(), c["selfchat"])
+			local word = GNIL.GPT.WordDriver:New(nil,nil,nil,TEXT_ALIGN_RIGHT)
+				:InjestData({text = val, length = EstimateReadingTime(val, 200)})
+
+			self.parent.parent:AddMessage(speaker, word)
 
 			GNIL.GPT.Input.SendPrompt(val)
 		end
@@ -275,7 +277,7 @@ function PANEL:Paint(w,h) end
 
 function PANEL:PerformLayout(w,h)
 	surface.SetFont("ChatMessage.Medium")
-	local tw,_ = surface.GetTextSize(s.mictext)
+	local tw,_ = surface.GetTextSize(self.record_button.mictext)
 	self.record_button:SetWide(tw + h)
 
 	surface.SetFont("ChatMessage.Small")

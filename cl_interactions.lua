@@ -1,5 +1,5 @@
 local MODULE = MODULE
-local LocalPlayer = LocalPlayer()
+local LocalPlayer = LocalPlayer
 local Net = MODULE:GetExtension("net")
 
 --[[
@@ -14,7 +14,7 @@ function GNIL.GPT.Interaction.Start(ent)
 	local chat_container = vgui.Create("DPanel")
 	chat_container.Entity = ent
 	chat_container._thinkdelay = CurTime()
-	LocalPlayer._gpt_currentinteraction = chat_container
+	LocalPlayer()._gpt_currentinteraction = chat_container
 	chat_container:SetSize(ScrW() * .45, ScrH() * .25)
 	chat_container:Center()
 	chat_container:SetY(ScrH() - chat_container:GetTall() * 1.3)
@@ -29,14 +29,14 @@ function GNIL.GPT.Interaction.Start(ent)
 	chat_log.parent = chat_container
 	chat_log:Dock(TOP)
 
-	function chat_container:AddMessage(speakertbl, data)
+	function chat_container:AddMessage(speaker, worddriver, url)
 		local cht, inpt, npc = self.chat_log, self.chat_log.input, self.Entity
 
-		local msg = cht:AddMessage(speakertbl, data[2])
+		local msg = cht:AddMessage(speaker, worddriver)
 
 		-- if the url works play the sound and start typewriter
 		-- if it dosent it will start typewriter anyways
-		npc:PlayVoice(data[1], function()
+		npc:PlayVoice(url, function()
 			if not IsValid(msg) then return end
 			msg:StartTypeWriter()
 		end)
@@ -49,7 +49,7 @@ function GNIL.GPT.Interaction.Start(ent)
 		return msg
 	end
 
-	local hist = ent:History():GetHistory("local", 10)
+	local hist = ent:GetHistory():GetHistory("local", 10)
 	if #hist > 0 then
 		for _, d in ipairs(hist) do
 			d[2].length = 1
@@ -60,8 +60,7 @@ function GNIL.GPT.Interaction.Start(ent)
 	function chat_container:Think()
 		if self._thinkdelay > CurTime() then return end
 		self._thinkdelay = CurTime() + 1
-
-		if not IsValid(self.Entity) or self.Entity:GetPos():DistToSqr(LocalPlayer:GetPos()) > maxdist then
+		if not IsValid(self.Entity) or self.Entity:GetPos():DistToSqr(LocalPlayer():GetPos()) > maxdist then
 			GNIL.GPT.Interaction.Close()
 		end
 	end
@@ -85,7 +84,7 @@ function GNIL.GPT.Interaction.Error(etype)
 		msg.text = "An error occured on the server, please try again in a few seconds."
 	end
 
-	pnl:AddMessage({"Error", c["red"]}, msg)
+	pnl:AddMessage(GNIL.GPT.Classes.Speaker("Error", c["red"]), msg)
 end
 
 function GNIL.GPT.Interaction.Close()
@@ -94,12 +93,12 @@ function GNIL.GPT.Interaction.Close()
 		intmenu:Clear()
 		intmenu:Remove()
 	end
-	LocalPlayer._gpt_currentinteraction = nil
+	LocalPlayer()._gpt_currentinteraction = nil
 	GNIL.Net.Create("gpt_interaction"):WriteBool(false):SendToServer()
 end
 
 function GNIL.GPT.Interaction.GetCurrent()
-	local p = LocalPlayer._gpt_currentinteraction
+	local p = LocalPlayer()._gpt_currentinteraction
 	return IsValid(p) and p
 end
 
@@ -163,13 +162,17 @@ end)
 --[[
 	Output receiving stuff
 --]]
-
+local col = Color(36,181,233)
 function GNIL.GPT.Input.SendPrompt(prompt)
 	local pnl = GNIL.GPT.Interaction.GetCurrent()
 	if not IsValid(pnl) then return end
+
 	if IsValid(pnl.Entity) then
-		pnl.Entity:History():AddMessage("local", {LocalPlayer():GetName(), Color(36,181,233)},{text = prompt, length = 1})
+		local speaker = GNIL.GPT.Classes.Speaker(LocalPlayer():GetName(), col)
+		local msg = {text = prompt, length = 1}
+		pnl.Entity:GetHistory():AddMessage("local", speaker, msg)
 	end
+
 	GNIL.Net.Create("gpt_input_prompt")
 		:WriteString(prompt)
 	:SendToserver()
@@ -180,23 +183,25 @@ end
 --]]
 Net:Receive("gpt_output_data", function()
 	local ent = net.ReadEntity()
-	local data = net.ReadUInt(32)
-	data = util.JSONToTable(util.Decompress(net.ReadData(data)))
+	local data = util.JSONToTable(util.Decompress(net.ReadData(net.ReadUInt(32))))
+	local url = data[1]
+	local msg = data[2]
 
 	-- error occured or npc is gone
-	if not data or not IsValid(ent) then
+	if not msg or not IsValid(ent) then
 		return
 	end
 
 	local panl = GNIL.GPT.Interaction.GetCurrent()
 	if not panl then
-		local len = data.driver == "gcloud" and data.timepoints.len or data.length
-		GNIL.GPT.Subtitles.Add(ent:GetDisplayName(), data, len, nil, ent:GetNameColor():ToColor())
+		local speaker = GNIL.GPT.Classes.Speaker(ent:GetDisplayName(), ent:GetNameColor():ToColor())
+		local len = msg.driver == "gcloud" and msg.timepoints.len or msg.length
+		GNIL.GPT.Subtitles.Add(speaker, msg, len)
 		return
 	end
 
 	if panl.Entity ~= ent then return end
-	local msg = {{ent:GetDisplayName(), ent:GetNameColor():ToColor(), ent.GetTextFont and npc:GetTextFont()},data}
-	ent:History():AddMessage("local", msg)
-	panl:AddMessage(msg[1], msg[2])
+	local speaker = GNIL.GPT.Classes.Speaker(ent:GetDisplayName(), ent:GetNameColor():ToColor(), ent.GetTextFont and npc:GetTextFont())
+	ent:GetHistory():AddMessage("local", {speaker, msg})
+	panl:AddMessage(speaker, msg, url)
 end)

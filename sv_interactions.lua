@@ -106,14 +106,14 @@ Net:Receive("gpt_input_prompt", function(_, ply)
 
 	-- When the player sends a manual text input, show the messages to anyone nearby
 	-- !!! might need to be moved to the brain think
-	-- local rf = RecipientFilter()
-	-- rf:AddPAS(ent:GetPos())
-	-- rf:RemovePlayer(ply)
+	local rf = RecipientFilter()
+	rf:AddPAS(ent:GetPos())
+	rf:RemovePlayer(ply)
 
-	-- GNIL.Net.Create("gpt_input_subtitle")
-	-- 	:WriteString(msg)
-	-- 	:WriteString(ply:GetName())
-	-- :Send(rf)
+	GNIL.Net.Create("gpt_input_subtitle")
+		:WriteString(msg)
+		:WriteString(ply:GetName())
+	:Send(rf)
 
 	ent:BrainThink(msg, ply)
 end)

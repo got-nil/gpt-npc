@@ -38,7 +38,7 @@ function ENT:Initialize()
 					return
 				end
 
-				if not self:StartInteraction() then return end
+				if not self:StartInteraction(ply) then return end
 
 				if GNIL.GPT.Mute.IsGPTMuted(ply) then
 					ply:ChatMessage(Color(244,244,244),"[",Color(255,139,62),"TOS",Color(244,244,244),"] You have not accepted the ",Color(255,178,178),"TOS",Color(244,244,244)," to use this feature, type \"", Color(94,250,164),"/acceptTOS",Color(244,244,244),"\" to accept the TOS.")
@@ -77,9 +77,6 @@ function ENT:Initialize()
 end
 
 function ENT:OnRemove()
-	if self.brain then
-		self.brain:Delete()
-	end
 end
 
 local usedelay = .75

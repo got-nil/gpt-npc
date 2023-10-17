@@ -18,7 +18,7 @@ function ENT:EndInteraction()
 end
 
 function ENT:PlayVoice(url, callback)
-	if not url then return end
+	if not url then callback() return end
 	sound.PlayURL(url, "3d", function(snd, err, errstr)
 		if not IsValid(snd) or not IsValid(self) then callback() return end
 		snd:SetPos(self:GetPos())
@@ -134,6 +134,6 @@ function ENT:OnRemove()
 	self:AltRemove()
 end
 
-function ENT:History()
+function ENT:GetHistory()
 	return self._history
 end

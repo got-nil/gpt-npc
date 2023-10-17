@@ -11,7 +11,6 @@ function PANEL:Init()
 	self:SetText("")
 	self:SetCursor("arrow")
 	self.maxwidth = (ScrW() * .45) * .50
-	self.alignment = TEXT_ALIGN_LEFT
 	self.speaker = {
 		name = "Unknown",
 		color = Color(64, 198, 255),
@@ -30,82 +29,35 @@ function PANEL:Init()
 			tall = 0
 		}
 	}
-
-	GNIL.GPT.WordDriver(self)
 end
 
-local alignments = {
-	["left"] = TEXT_ALIGN_LEFT,
-	["center"] = TEXT_ALIGN_CENTER,
-	["right"] = TEXT_ALIGN_RIGHT,
-	[TEXT_ALIGN_LEFT] = TEXT_ALIGN_LEFT,
-	[TEXT_ALIGN_CENTER] = TEXT_ALIGN_CENTER,
-	[TEXT_ALIGN_RIGHT] = TEXT_ALIGN_RIGHT,
-	["LEFT"] = TEXT_ALIGN_LEFT,
-	["CENTER"] = TEXT_ALIGN_CENTER,
-	["RIGHT"] = TEXT_ALIGN_RIGHT,
-	["<"] = TEXT_ALIGN_LEFT,
-	["|"] = TEXT_ALIGN_CENTER,
-	[">"] = TEXT_ALIGN_RIGHT,
-}
-
-function PANEL:SetAlignment(align)
-	if alignments[align] then
-		self.alignment = alignments[align]
-	end
-end
-
-function PANEL:SetSpeaker(speaker, color, font)
-	if istable(speaker) then
-		speaker, color, font = speaker[1], speaker[2], speaker[3]
-	end
-
-	if IsEntity(speaker) then
-		if IsPlayer(speaker) then
-			speaker = speaker:Name()
-		else
-			speaker = speaker:GetName() or speaker:GetClass()
-		end
-	end
-
-	speaker = speaker or self.speaker.name
-	font = font or self.speaker.font
-	surface.SetFont(font)
-	local wide, tall = surface.GetTextSize(speaker)
-	self.speaker.name = speaker
-	self.speaker.color = color or self.speaker.color
-	self.speaker.font = font
-	self.speaker.size = {
-		wide = wide,
-		tall = tall
-	}
-end
-
-function PANEL:SetMessage(data)
-	self.worddriver:InjestData(data)
-end
-
-function PANEL:AddMessage(speaktbl, msgdata, alignment)
-	msgdata.alignment = alignment -- >:c
-	self:SetSpeaker(speaktbl)
-	self:SetMessage(msgdata)
-	self:SetAlignment(alignment)
+function PANEL:SetMessage(speakerobj, msgdata)
+	self.speaker = speakerobj
+	self.worddriver = msgdata
+	self.worddriver:AddSignalListener("updatelayout", function()
+		self:InvalidateLayout()
+	end)
 	self:PerformLayout()
 
 	return self
 end
 
 function PANEL:StartTypeWriter()
+	if not self.worddriver then return end
 	self.worddriver:StartTypeWriter()
 end
 
 function PANEL:TypeWriteFinishCallback(func)
+	if not self.worddriver then return end
 	self.worddriver.OnFinished = func
 end
 
 function PANEL:CalcSize()
-	local sw, sh = self.speaker.size.wide, self.speaker.size.tall
-	local mw, mh = self.message.size.wide, self.message.size.tall
+	if not self.worddriver then return 0, 0 end
+	local size =  self.speaker:GetSize()
+	local sw, sh = size.wide, size.tall
+	local mw, mh = self.worddriver:GetTextSize()
+	-- local mw, mh = self.message.size.wide, self.message.size.tall
 
 	return math.max(sw, mw), sh + mh + 5
 end
@@ -137,12 +89,14 @@ function PANEL:PaintBackground(w, h)
 	local w1, h1 = width, h
 	local x1, y1 = l, 0
 
-	if self.alignment == TEXT_ALIGN_CENTER then
+	local align = self.worddriver and self.worddriver:GetAlignment()
+
+	if align == TEXT_ALIGN_CENTER then
 		w1 = self.speaker.size.wide
 		x1 = w * .5 - w1 * .5
 		y1 = self.speaker.size.tall - 1
 		h1 = width
-	elseif self.alignment == TEXT_ALIGN_RIGHT then
+	elseif align == TEXT_ALIGN_RIGHT then
 		x1 = w - w1
 		h1 = h
 	end
@@ -163,14 +117,16 @@ function PANEL:Paint(w, h)
 	local l, r = 10, 10
 	local x = l or 0
 
-	if self.alignment == TEXT_ALIGN_CENTER then
+	local align = self.worddriver and self.worddriver:GetAlignment()
+
+	if align == TEXT_ALIGN_CENTER then
 		x = w * .5
-	elseif self.alignment == TEXT_ALIGN_RIGHT then
+	elseif align == TEXT_ALIGN_RIGHT then
 		x = w - r or 0
 	end
 
-	draw.DrawText(self.speaker.name, self.speaker.font, x + 1, 1, c["black"], self.alignment) -- lol
-	draw.DrawText(self.speaker.name, self.speaker.font, x, 0, self.speaker.color, self.alignment)
+	draw.DrawText(self.speaker.name, self.speaker.font, x + 1, 1, c["black"], align) -- lol
+	draw.DrawText(self.speaker.name, self.speaker.font, x, 0, self.speaker.color, align)
 
 	if self.history_included then
 		local speakerw, speakerh = surface.GetTextSize(self.speaker.name)

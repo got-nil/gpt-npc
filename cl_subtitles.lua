@@ -9,21 +9,19 @@ local meta = {
 	origin = ScrH() * .95
 }
 
-function meta:AddSubtitle(name, worddriver, duration, namefont, namecolor)
-	assert(type(name) == "string" and worddriver)
+function meta:AddSubtitle(speaker, worddriver, duration)
+	assert(IsSpeaker(speaker))
 
 	table.insert(self.tbl, {
 		ytar = 0,
 		y = 0,
-		name = name,
-		namefont = namefont or "ChatMessage.Medium",
-		namecolor = namecolor or Color(31,124,254),
+		speaker = speaker,
 		driver = worddriver,
 		duration = SysTime() + (duration or 1)
 	})
 end
 
-local max_dist = 500 ^ 2
+local max_dist = 500 * 500
 local falloff = max_dist * .10
 local cply = LocalPlayer()
 local disttosqr = FindMetaTable("Entity").DistToSqr
@@ -53,7 +51,7 @@ function meta:Draw()
 			t.y = Lerp(0.05, t.y, t.ytar)
 			local word = t.driver
 			surface.SetFont(t.namefont)
-			local namewide, nametall = surface.GetTextSize(t.name)
+			local namewide, nametall = surface.GetTextSize(t.speaker:GetName())
 			local wide, _ = word:GetFullTextSize()
 			local _, tall = word:GetTextSize()
 			local textx, texty = x - wide * .5, y - t.y
@@ -65,7 +63,7 @@ function meta:Draw()
 			surface.SetDrawColor(t.namecolor)
 			surface.DrawRect(textx-5, texty-5, 3, tall + nametall + 10)
 
-			draw.SimpleTextOutlined(t.name, t.namefont, textx, texty, t.namecolor,nil,nil, 1, color_black)
+			draw.SimpleTextOutlined(t.speaker:GetName(), t.speaker:GetFont(), textx, texty, t.speaker:GetColor(),nil,nil, 1, color_black)
 			word:DrawText(textx, texty + nametall)
 		end
 	render.SetScissorRect(0, 0, 0, 0, false)
@@ -110,15 +108,14 @@ GNIL.GPT.Subtitles.Container = function()
 	return setmetatable({}, meta)
 end
 
-function GNIL.GPT.Subtitles.Add(name, wd, duration, namefont, namecolor)
-	local wordriver = IsWordDriver(wd) and wd
-	if not wordriver then
-		wordriver = GNIL.GPT.WordDriver()
-		wordriver:SetMaxWidth(ScrW() * .55)
-		wordriver:InjestData(wd)
-		wordriver:SetFont("ChatMessage.Medium")
+function GNIL.GPT.Subtitles.Add(speaker, worddriver, duration)
+	worddriver = IsWordDriver(worddriver) and worddriver
+	if not worddriver then
+		worddriver = GNIL.GPT.WordDriver(ScrW() * .55, "ChatMessage.Medium")
+		worddriver:InjestData(wd)
 	end
-	GNIL.GPT.Subtitles.Container:AddSubtitle(name, worddriver, duration, namefont, namecolor)
+
+	GNIL.GPT.Subtitles.Container:AddSubtitle(speaker, worddriver, duration)
 end
 
 MODULE:AddHook("HUDPaint", "GPT.Subtitles.HUDPaint", function() GNIL.GPT.Subtitles.Container() end)
@@ -136,6 +133,9 @@ MODULE:AddHook("EntityRemoved", "GPT.Subtitles.Entity.Removed", function(ent, _)
 		end
 	end
 end)
+MODULE:AddHook("OnScreenSizeChanged", "GPT.Subtitles.ScrenSizeChanged", function()
+	GNIL.GPT.Subtitles.Container.origin = ScrH() * .95
+end)
 
 local namecolor = Color(36,181,233)
 local function EstimateReadingTime(text, wpm)
@@ -144,7 +144,11 @@ local function EstimateReadingTime(text, wpm)
 end
 
 Net:Receive("gpt_input_subtitle", function()
-	local d = {text = net.ReadString()}
-	d["length"] = net.ReadBool() and net.ReadUInt(8) or EstimateReadingTime(d.text, 200)
-	GNIL.GPT.Subtitles.Add(net.ReadString(), d, d.length, nil, namecolor)
+	local wdriver = {
+		text = net.ReadString(),
+		color = namecolor
+	}
+	wdriver["length"] = EstimateReadingTime(wdriver.text, 200)
+
+	GNIL.GPT.Subtitles.Add(GNIL.GPT.Classes.Speaker(net.ReadString()), wdriver, d.length)
 end)
