@@ -6,12 +6,13 @@ ClassAccessorFunc(Speaker, {
 	Size = FuncAccessors.ReadOnly("size"),
 })
 
+local c = Color(47,188,244)
 function Speaker:Initialize(name, color, font)
 	self.name = name
-	self.color = color
-	self.font = font
+	self.color = color or c
+	self.font = font or "ChatMessage.Small"
 
-	surface.SetFont(font)
+	surface.SetFont(self.font)
 	local w, h = surface.GetTextSize(name)
 	self.size = {
 		wide = w,
@@ -19,7 +20,7 @@ function Speaker:Initialize(name, color, font)
 	}
 end
 
-function IsSpeaker(obj)
+function Speaker.IsSpeaker(obj)
 	return IsInstanceOf(obj, Speaker)
 end
 

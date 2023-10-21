@@ -10,7 +10,6 @@ local maxdist = 300 ^ 2
 function GNIL.GPT.Interaction.Start(ent)
 	local intmenu = GNIL.GPT.Interaction.GetCurrent()
 	if IsValid(intmenu) then return intmenu	end
-
 	local chat_container = vgui.Create("DPanel")
 	chat_container.Entity = ent
 	chat_container._thinkdelay = CurTime()
@@ -18,7 +17,7 @@ function GNIL.GPT.Interaction.Start(ent)
 	chat_container:SetSize(ScrW() * .45, ScrH() * .25)
 	chat_container:Center()
 	chat_container:SetY(ScrH() - chat_container:GetTall() * 1.3)
-	chat_container.Paint = function() end
+	chat_container.Paint = nil
 
 	ent.AltRemove = function()
 		chat_container:Remove()
@@ -38,7 +37,7 @@ function GNIL.GPT.Interaction.Start(ent)
 		-- if it dosent it will start typewriter anyways
 		npc:PlayVoice(url, function()
 			if not IsValid(msg) then return end
-			msg:StartTypeWriter()
+			msg:StarWordDriver()
 		end)
 
 		inpt:SetEnterAllowed(false)
@@ -49,11 +48,15 @@ function GNIL.GPT.Interaction.Start(ent)
 		return msg
 	end
 
-	local hist = ent:GetHistory():GetHistory("local", 10)
+	local hist = ent:GetHistory()
 	if #hist > 0 then
 		for _, d in ipairs(hist) do
-			d[2].length = 1
-			chat_container:AddMessage(d[1], d[2])
+			local word = GNIL.GPT.WordDriver:New(nil, d.font, d.color, d.alignment)
+				:InjestData({
+					text = d.msg,
+					length = .001
+				})
+			chat_container:AddMessage(d.speaker, word)
 		end
 	end
 
@@ -84,7 +87,7 @@ function GNIL.GPT.Interaction.Error(etype)
 		msg.text = "An error occured on the server, please try again in a few seconds."
 	end
 
-	pnl:AddMessage(GNIL.GPT.Classes.Speaker("Error", c["red"]), msg)
+	pnl:AddMessage(GNIL.GPT.Classes.Speaker:New("Error", c["red"]), msg)
 end
 
 function GNIL.GPT.Interaction.Close()
@@ -140,8 +143,8 @@ function GNIL.GPT.Recording.End(fromserver)
 		GNIL.Net.Create("gpt_recording"):SendToserver()
 	end
 	if not IsValid(mnu) then return end
-	mnu.input.record_button.recording = false
-	mnu.input:SetEnterAllowed(true)
+	mnu.chat_log.input.record_button.recording = false
+	mnu.chat_log.input:SetEnterAllowed(true)
 end
 
 function GNIL.GPT.Recording.IsRecording()
@@ -168,14 +171,13 @@ function GNIL.GPT.Input.SendPrompt(prompt)
 	if not IsValid(pnl) then return end
 
 	if IsValid(pnl.Entity) then
-		local speaker = GNIL.GPT.Classes.Speaker(LocalPlayer():GetName(), col)
-		local msg = {text = prompt, length = 1}
-		pnl.Entity:GetHistory():AddMessage("local", speaker, msg)
+		local speaker = GNIL.GPT.Classes.Speaker:New(LocalPlayer():GetName(), col)
+		pnl.Entity:AddHistory(speaker, prompt, color_white, nil, ">")
 	end
 
 	GNIL.Net.Create("gpt_input_prompt")
 		:WriteString(prompt)
-	:SendToserver()
+	:SendToServer()
 end
 
 --[[
@@ -194,14 +196,16 @@ Net:Receive("gpt_output_data", function()
 
 	local panl = GNIL.GPT.Interaction.GetCurrent()
 	if not panl then
-		local speaker = GNIL.GPT.Classes.Speaker(ent:GetDisplayName(), ent:GetNameColor():ToColor())
+		local speaker = GNIL.GPT.Classes.Speaker:New(ent:GetDisplayName(), ent:GetNameColor():ToColor())
 		local len = msg.driver == "gcloud" and msg.timepoints.len or msg.length
 		GNIL.GPT.Subtitles.Add(speaker, msg, len)
 		return
 	end
 
 	if panl.Entity ~= ent then return end
-	local speaker = GNIL.GPT.Classes.Speaker(ent:GetDisplayName(), ent:GetNameColor():ToColor(), ent.GetTextFont and npc:GetTextFont())
-	ent:GetHistory():AddMessage("local", {speaker, msg})
+	local entcolor = ent:GetNameColor():ToColor()
+	local entfont = ent.GetTextFont and npc:GetTextFont()
+	local speaker = GNIL.GPT.Classes.Speaker:New(ent:GetDisplayName(), entcolor, entfont)
+	ent:AddHistory(speaker, msg, entcolor, entfont)
 	panl:AddMessage(speaker, msg, url)
 end)

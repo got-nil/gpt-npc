@@ -2,11 +2,21 @@ local MODULE = MODULE
 
 function ENT:Initialize()
 	self.isgptnpc = true
-	self._history = GNIL.GPT.Classes.History:New()
+	self._history = {}
 
 	self:AddCallback( "BuildBonePositions", function( ent, _ )
 		ent:HeadLook()
 	end)
+
+	return self
+end
+
+function ENT:AddHistory(speaker, msg, col, font, alignment)
+	table.insert(self._history, {speaker = speaker, msg = msg, length = 1, color = col or Color(36,181,233), font = font or "ChatMessage.Small", alignment = alignment})
+end
+
+function ENT:GetHistory()
+	return self._history
 end
 
 function ENT:StartInteraction()
@@ -134,6 +144,3 @@ function ENT:OnRemove()
 	self:AltRemove()
 end
 
-function ENT:GetHistory()
-	return self._history
-end

@@ -42,7 +42,12 @@ function GNIL.GPT.Interaction.Error(ply, etype)
 end
 
 function GNIL.GPT.Interaction.Clear(ply, clientrequest)
-	ply._gpt_currentinteraction:EndInteraction()
+	local ent = ply._gpt_currentinteraction
+	if IsValid(ent) then
+		ply._gpt_endinginteraction = true
+		ply._gpt_currentinteraction:EndInteraction()
+		ply._gpt_endinginteraction = nil
+	end
 	ply._gpt_currentinteraction = nil
 
 	-- this is to prevent the server from sending a useless message back to the client

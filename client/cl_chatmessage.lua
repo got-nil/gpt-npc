@@ -31,9 +31,10 @@ function PANEL:Init()
 	}
 end
 
-function PANEL:SetMessage(speakerobj, msgdata)
+function PANEL:SetMessage(speakerobj, worddriver)
 	self.speaker = speakerobj
-	self.worddriver = msgdata
+	worddriver.maxwidth = self.maxwidth
+	self.worddriver = worddriver
 	self.worddriver:AddSignalListener("updatelayout", function()
 		self:InvalidateLayout()
 	end)
@@ -42,9 +43,9 @@ function PANEL:SetMessage(speakerobj, msgdata)
 	return self
 end
 
-function PANEL:StartTypeWriter()
+function PANEL:StarWordDriver()
 	if not self.worddriver then return end
-	self.worddriver:StartTypeWriter()
+	self.worddriver:Start()
 end
 
 function PANEL:TypeWriteFinishCallback(func)
@@ -56,8 +57,7 @@ function PANEL:CalcSize()
 	if not self.worddriver then return 0, 0 end
 	local size =  self.speaker:GetSize()
 	local sw, sh = size.wide, size.tall
-	local mw, mh = self.worddriver:GetTextSize()
-	-- local mw, mh = self.message.size.wide, self.message.size.tall
+	local mw, mh =  self.worddriver:GetTextSize()
 
 	return math.max(sw, mw), sh + mh + 5
 end

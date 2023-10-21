@@ -1,3 +1,6 @@
+local MODULE = MODULE
+
+print("dfgjjfgdjklf gdkjdg kjsdfghkjhsgdf kjh gfkjhdfsg kjhdskfgjnsrirubnsikdjfbnikldjsnfbikldsjnfg, All my fellas")
 function draw.DrawTexturedRectRotatedOutlined(x, y, width, height, color, rotation, outlinewidth, outlinecolour)
 	local steps = ( outlinewidth * 2 ) / 3
 	if steps < 1 then steps = 1 end
@@ -23,7 +26,7 @@ local function EyeTrace()
 	tr.endpos = tr.start + lp:EyeAngles():Forward() * 100
 	tr = util.TraceLine(tr)
 
-	if IsValid(tr.Entity) and tr.Entity._gptnpc then
+	if IsValid(tr.Entity) and tr.Entity.isgptnpc then
 		return tr.Entity
 	end
 	return false
@@ -117,7 +120,7 @@ local function DrawStartRecording()
 	surface.SetMaterial(mat_recording)
 	local total_height = size * 2 + select(2, surface.GetTextSize(record_start))
 
-	local my = chat_container:GetY()
+	local my = GNIL.GPT.Interaction.GetCurrent():GetY()
 	y = math.min(y, my - total_height)
 	draw.DrawTexturedRectRotatedOutlined(x, y, size, size, c["white"], 0, 1, c["black"])
 	y = y + size
@@ -141,7 +144,7 @@ local function DrawStartChat(ent)
 	draw.SimpleTextOutlined(text, "TargetID", x,y, c["white"], TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, c["black"])
 end
 
-MODULE:AddHook("HUDPaint", function()
+hook.Add("HUDPaint", "cl_hud.lua",function()
 	if GNIL.GPT.Recording.IsRecording() then
 		DrawRecordTimeout()
 		return

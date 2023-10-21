@@ -18,7 +18,7 @@ local c = {
 	["white"] = color_white
 }
 
-local WordDriver = GNIL.Thirdparty.middleclass("WordDriver"):IncludeMixin(GNIL.ClassMixin.Events)
+local WordDriver = GNIL.Thirdparty.middleclass("WordDriver"):IncludeMixin(GNIL.ClassMixins.Events)
 ClassAccessorFunc(WordDriver, {
 	Active  = {"active", FORCE_BOOL},
 	Text  = {"text", FORCE_STRING},
@@ -44,7 +44,7 @@ ClassAccessorFunc(WordDriver, {
 
 function WordDriver:Initialize(maxwidth, font, color, alignment)
 	self.maxwidth = maxwidth or 100
-	self.alignment = alignment or TEXT_ALIGN_LEFT
+	self.alignment = alignments[alignment] or TEXT_ALIGN_LEFT
 	self.font = font or "ChatMessage.Small"
 	self.color = color or c["white"]
 
@@ -97,7 +97,7 @@ end
 		}
 --]]
 
-function wordDriver:InjestData( data )
+function WordDriver:InjestData( data )
 	local driver = data.driver
 
 	self.font = data.font or self.font
@@ -144,7 +144,7 @@ function wordDriver:InjestData( data )
 	return self
 end
 
-function wordDriver:Think()
+function WordDriver:Think()
 	if not self.active then return end
 
 	if self.nexttime <= SysTime() then
@@ -185,7 +185,7 @@ function WordDriver:Reset(start)
 	self.drawtext = ""
 end
 
-function wordDriver:GetFullTextSize()
+function WordDriver:GetTextSize()
 	return self.fulltextwide or 0, self.fulltexttall or 0
 end
 
@@ -197,9 +197,11 @@ end
 function WordDriver:OnFinished() end
 
 function WordDriver:__tostring()
-	return "[wordDriver]" .. self.parent and tostring(self.parent) or "Standalone"
+	return "[WordDriver]" .. self.parent and tostring(self.parent) or "Standalone"
 end
 
 function IsWordDriver(obj)
 	return IsInstanceOf(obj, WordDriver)
 end
+
+GNIL.GPT.WordDriver = WordDriver

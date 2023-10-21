@@ -1,6 +1,6 @@
 GNIL.GPT.Subtitles.NPCs = GNIL.GPT.Subtitles.NPCs or {}
+local Net = MODULE:GetExtension("net")
 local etbl = GNIL.GPT.Subtitles.NPCs
-
 local convar = CreateClientConVar( "gpt_showsubtitles", "1", true, false, "Toggles showing subtitles for nearby GPT based NPCs.")
 local grad = Material("gui/gradient", "mips smooth")
 
@@ -10,7 +10,7 @@ local meta = {
 }
 
 function meta:AddSubtitle(speaker, worddriver, duration)
-	assert(IsSpeaker(speaker))
+	assert(GNIL.GPT.Classes.Speaker.IsSpeaker(speaker))
 
 	table.insert(self.tbl, {
 		ytar = 0,
@@ -150,5 +150,5 @@ Net:Receive("gpt_input_subtitle", function()
 	}
 	wdriver["length"] = EstimateReadingTime(wdriver.text, 200)
 
-	GNIL.GPT.Subtitles.Add(GNIL.GPT.Classes.Speaker(net.ReadString()), wdriver, d.length)
+	GNIL.GPT.Subtitles.Add(GNIL.GPT.Classes.Speaker:New(net.ReadString()), wdriver, d.length)
 end)

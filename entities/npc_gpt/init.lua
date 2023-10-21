@@ -94,7 +94,20 @@ function ENT:Use(ply)
 	end
 end
 
-function ENT:Think() end
+local maxdist = 301 ^ 2
+function ENT:Think()
+	local ply = self:GetListeningTarget()
+
+	if not IsValid(ply) then
+		self:EndInteraction()
+		return
+	end
+
+	local dist = ply:GetPos():DistToSqr(self:GetPos())
+	if dist > maxdist then
+		self:EndInteraction()
+	end
+end
 
 function ENT:Timer(str, del, rep, func)
 	if isfunction(rep) and func == nil then func = rep rep = 1 end
@@ -132,8 +145,8 @@ end
 
 function ENT:EndInteraction()
 	local ply = self:GetListeningTarget()
-	if IsValid(ply) then
-		GNIL.GPT.Interaction.End(ply)
+	if IsValid(ply) and not ply._gpt_endinginteraction then
+		GNIL.GPT.Interaction.Clear(ply)
 	end
 	self:SetListeningTarget(nil)
 	self:SetCurrentState(self.STATE["Idle"])
@@ -191,8 +204,9 @@ function ENT:EndListening(cancel)
 end
 
 function ENT:BrainThink(newmsg, ply, history)
+	local steamid = ply:SteamID64()
 	local gpt_params = GNIL.GPT.Classes.GPTParameters:New()
-		:AddMessage(newmsg, "user", ply:SteamID64())
+		:AddMessage(newmsg, "user", steamid)
 		:SetHistory(steamid, 3)
 
 	self.brain:Think(gpt_params)

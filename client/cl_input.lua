@@ -223,11 +223,14 @@ function PANEL:TextInput()
 
 		table.insert(self.input_history, val)
 
-		if ent:GetPos():DistToSqr(LocalPlayer():GetPos()) <= maxdist and ent:GetCurrentState() == ent.STATE["Idle"] then
+		if string.Trim(val) ~= "" and ent:GetPos():DistToSqr(LocalPlayer():GetPos()) <= maxdist and ent:GetCurrentState() == ent.STATE["Idle"] then
 			-- adding the message to the current message log
-			local speaker = GNIL.GPT.Classes.Speaker(LocalPlayer():GetName(), c["selfchat"])
+			local speaker = GNIL.GPT.Classes.Speaker:New(LocalPlayer():GetName(), c["selfchat"])
 			local word = GNIL.GPT.WordDriver:New(nil,nil,nil,TEXT_ALIGN_RIGHT)
-				:InjestData({text = val, length = EstimateReadingTime(val, 200)})
+				:InjestData({
+					text = val,
+					length = EstimateReadingTime(val, 200)
+				})
 
 			self.parent.parent:AddMessage(speaker, word)
 
