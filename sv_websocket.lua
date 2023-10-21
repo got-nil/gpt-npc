@@ -55,8 +55,13 @@ function GPTWebsocket:OnMessage(message)
     end
 
     -- Get task response and finally call success handler (or error).
-    local success, data = task._base.response(task, state.data)
-    task[success && "Success" || "Error"](task, unpack(data))
+    local success, out = task._base.response(task, state.data)
+    if success then
+        task:Success(unpack(out))
+    else
+        task:Error(GNIL_GPT_ERRORS_INVALID, out)
+    end
+
     return
 end
 
