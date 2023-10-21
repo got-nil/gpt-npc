@@ -21,13 +21,13 @@ function Brain:Think(gpt_params, tts_params)
     -- Start GPT task.
     local gpt = self:GPT(gpt_params)
     if not gpt then return false end
-    local promise = GNIL.ClassMixins.Promise:New()
+    local promise = GNIL.Thirdparty.middleclass("Promise"):IncludeMixin(GNIL.ClassMixins.Promise)
 
     -- Attach GPT task callbacks, either rejecting promise
     -- or starting TTS task to generate the mp3 URL.
     gpt:OnError(function(...)
         return promise:Error(...)
-    end):OnSuccess(function(_, responseMessage)
+    end):OnSuccess(function(responseMessage)
 
         -- There should always be a valid response message in a
         -- success, but make sure again just incase.
@@ -37,7 +37,12 @@ function Brain:Think(gpt_params, tts_params)
 
         -- Start TTS task.
         if not tts_params then tts_params = self._tts_params end
-        local tts = self:TTS(tts_params, responseMessage)
+        local tts = self:TTS(responseMessage, tts_params)
+
+        -- If the TTS task fails, reject the promise.
+        if not tts then
+            return promise:Error(GNIL_GPT_ERRORS_INVALID, "Could not start TTS task")
+        end
 
         -- Attach TTS task callbacks, sending promise response.
         tts:OnError(function(...)
