@@ -97,7 +97,7 @@ end
 		}
 --]]
 
-function WordDriver:InjestData( data )
+function WordDriver:InjestData(data)
 	local driver = data.driver
 
 	self.font = data.font or self.font
@@ -191,7 +191,7 @@ end
 
 function WordDriver:DrawText(x, y)
 	if not self.active and self.wordindex < #self.wordtbl then return end
-	draw.DrawTextShadow(self.drawtext,self.font,x,y,self.color,self.alignment)
+	draw.DrawTextShadow(self.drawtext,self.font,x,y,c["white"],self.alignment)
 end
 
 function WordDriver:OnFinished() end

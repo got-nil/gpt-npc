@@ -14,9 +14,9 @@ if CLIENT then
 	local LocalPlayer = LocalPlayer
 
 	-- Receive hash request, sending back if there is one.
-	Net:Receive("gpt_tos", function()
+	Net:Receive("gpt_tos", function(_,_,reply)
 		local out = LocalPlayer():GetPData("gpt_tos_hash")
-		local reply = GNIL.Net.CreateReply():WriteBool(out != nil)
+		reply:WriteBool(out != nil)
 		if out != nil then
 			reply:WriteString(out)
 		end

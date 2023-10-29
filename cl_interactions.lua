@@ -111,7 +111,7 @@ Net:Receive("gpt_interaction", function()
 		return
 	end
 
-	GNIL.GPT.Interaction.Start(net.ReadEntity())
+	GNIL.GPT.Recording.Start(net.ReadFloat())
 end)
 
 Net:Receive("gpt_interaction_error", function()
@@ -185,7 +185,8 @@ end
 --]]
 Net:Receive("gpt_output_data", function()
 	local ent = net.ReadEntity()
-	local data = util.JSONToTable(util.Decompress(net.ReadData(net.ReadUInt(32))))
+	local datalen = net.ReadUInt(32)
+	local data = util.JSONToTable(util.Decompress(net.ReadData(datalen)))
 	local url = data[1]
 	local msg = data[2]
 
@@ -204,8 +205,9 @@ Net:Receive("gpt_output_data", function()
 
 	if panl.Entity ~= ent then return end
 	local entcolor = ent:GetNameColor():ToColor()
-	local entfont = ent.GetTextFont and npc:GetTextFont()
-	local speaker = GNIL.GPT.Classes.Speaker:New(ent:GetDisplayName(), entcolor, entfont)
-	ent:AddHistory(speaker, msg, entcolor, entfont)
-	panl:AddMessage(speaker, msg, url)
+	local speaker = GNIL.GPT.Classes.Speaker:New(ent:GetDisplayName(), entcolor)
+	local worddriver = GNIL.GPT.WordDriver():InjestData(msg)
+	local histmsg = msg.message.text
+	ent:AddHistory(speaker, histmsg)
+	panl:AddMessage(speaker, worddriver, url)
 end)

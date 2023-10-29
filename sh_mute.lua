@@ -5,8 +5,8 @@ if CLIENT then
 	local c = {
 		["white"] = Color(244,244,244),
 		["blue"] = Color(76,250,230),
-		["mute"] = Color(244,67,64),
-		["unmute"] = Color(64,244,82),
+		["muted"] = Color(244,67,64),
+		["unmuted"] = Color(64,244,82),
 	}
 
 	function GNIL.GPT.Mute.SetGPTMuted(state)
@@ -14,15 +14,16 @@ if CLIENT then
 			:WriteBool(state)
 			:OnReply(function(succ)
 				if not succ then return end
-				LocalPlayer()._gpt_muted = net.ReadBool()
-				local text = LocalPlayer()._gpt_muted and "muted" or "unmuted"
+				local newstate = net.ReadBool()
+				LocalPlayer()._gpt_muted = newstate
+				local text = newstate and "muted" or "unmuted"
 				chat.AddText(c["white"],"[",c["blue"],"NPC Mute",c["white"],"] The NPC's are now ",c[text],text,c["white"]," from hearing you.")
 			end)
 		:SendToServer()
 	end
 
 	function GNIL.GPT.Mute.IsGPTMuted()
-		return LocalPlayer()._gpt_muted
+		return Either(isbool(LocalPlayer()._gpt_muted), LocalPlayer()._gpt_muted, false)
 	end
 
 	function GNIL.GPT.Mute.ToggleGPTMuted()
@@ -53,11 +54,13 @@ else
 
 	GNIL.Net.AddNetworkString("gpt_mute")
 
-	MODULE:GetExtension("net"):Receive("gpt_mute", function(_, ply)
-		local mute = net.ReadBool()
-		ply._gpt_muted = mute
-		ply._gpt_currentinteraction:EndListening(true)
-		return GNIL.Net.CreateReply():WriteBool(mute)
+	MODULE:GetExtension("net"):Receive("gpt_mute", function(_, ply, reply)
+		local newstate = net.ReadBool()
+		ply._gpt_muted = newstate
+		if IsValid(ply._gpt_currentinteraction) then
+			ply._gpt_currentinteraction:EndListening(true, true)
+		end
+		return reply:WriteBool(newstate)
 	end)
 
 	function GNIL.GPT.Mute.IsGPTMuted(ply)

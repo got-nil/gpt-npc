@@ -191,7 +191,7 @@ function ENT:EndListening(cancel)
 	end
 
 	GNIL.GPT.Recording.End(ply)
-	if self.recorder:IsRecording() then
+	if self.recorder and self.recorder:IsRecording() then
 		self.recorder:StopRecording()
 	end
 
@@ -203,7 +203,7 @@ function ENT:EndListening(cancel)
 	self:SetCurrentState(self.STATE["Thinking"])
 end
 
-function ENT:BrainThink(newmsg, ply, history)
+function ENT:BrainThink(newmsg, ply)
 	local steamid = ply:SteamID64()
 	local gpt_params = GNIL.GPT.Classes.GPTParameters:New()
 		:AddMessage(newmsg, "user", steamid)
@@ -221,27 +221,28 @@ function ENT:BrainThink(newmsg, ply, history)
 end
 
 function ENT:StartTalking(data)
-		-- data.gpt = {GPT Response message}
-		-- data.tts = {URL, data}
-		local driver = data.tts.driver
-		local length = 2
+	-- data.gpt = {GPT Response message}
+	-- data.tts = {URL, data}
+	local ttsdata = data.tts[2]
+	local driver = ttsdata.driver
+	local length
 
-		if driver == "gcloud" then
-			length = out.tts.timepoints.len
-		elseif driver == "elevenlabs" then
-			length = out.tts.length
-		else
-			return
-		end
+	if driver == "gcloud" then
+		length = ttsdata.timepoints.len
+	elseif driver == "elevenlabs" then
+		length = ttsdata.length
+	else
+		return
+	end
 
-		self:Timer("Talking", length, function()
-			self:SetCurrentState(self.STATE["Idle"])
-		end)
+	self:Timer("Talking", length, function()
+		self:SetCurrentState(self.STATE["Idle"])
+	end)
 
-		local rf = RecipientFilter()
-		rf:AddPlayer(self:GetListeningTarget())
-		rf:AddPAS(self:GetPos())
-		GNIL.GPT.Output.Send(rf, self, data.tts)
+	local rf = RecipientFilter()
+	rf:AddPlayer(self:GetListeningTarget())
+	rf:AddPAS(self:GetPos())
+	GNIL.GPT.Output.Send(rf, self, data.tts)
 end
 
 function ENT:RunBehaviour()
