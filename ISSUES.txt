@@ -1,0 +1,8 @@
+The GPT tos form fonts do not exist. (gpt.tos.TextHeavy, gpt.tos.Button)
+
+The recorder measures runtime from StartRecording -> EndRecording:
+    It should measure when the player is actually transmitting voice data instead,
+    since the recording could start but the player might just not use voicerecord.
+
+    Also implement some checks on the voice relay / websocket server to prevent clearly
+    invalid filelengths from being sent to the transcription file.

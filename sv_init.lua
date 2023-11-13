@@ -63,11 +63,11 @@ MODULE.OnLoadFinished = function()
 
     -- API connection state for NPC unavailable state.
     GNIL.GPT.Websocket:AddSignalListener("connected", function()
-		SetGlobal2Bool("GPT.API.Active", true)
-	end)
-	GNIL.GPT.Websocket:AddSignalListener("disconnected", function()
-		SetGlobal2Bool("GPT.API.Active", false)
-	end)
+        SetGlobal2Bool("GPT.API.Active", true)
+    end)
+    GNIL.GPT.Websocket:AddSignalListener("disconnected", function()
+        SetGlobal2Bool("GPT.API.Active", false)
+    end)
 end
 
 MODULE.OnUnload = function()

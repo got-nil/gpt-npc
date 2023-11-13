@@ -1,146 +1,64 @@
 local MODULE = MODULE
 
-function ENT:Initialize()
-	self.isgptnpc = true
-	self._history = {}
+MODULE:GetExtension("net"):Receive("gpt_npc_speak", function()
 
-	self:AddCallback( "BuildBonePositions", function( ent, _ )
-		ent:HeadLook()
-	end)
+    local data = {
+        npc = net.ReadEntity(),
+        url = net.ReadString(),
+        length = net.ReadFloat(),
+        driver = net.ReadString(),
+        text = net.ReadString()
+    }
 
-	return self
-end
+    -- Make sure we're getting a valid GPT NPC NPC reference.
+    if not IsValid(data.npc) or not data.npc.GPTNPC then
+        return
+    end
 
-function ENT:AddHistory(speaker, msg, col, font, alignment)
-	table.insert(self._history, {speaker = speaker, msg = msg, length = 1, color = col or Color(36,181,233), font = font or "ChatMessage.Small", alignment = alignment})
-end
+    sound.PlayURL(data.url, "3d", function(soundChannel, _, errName)
 
-function ENT:GetHistory()
-	return self._history
-end
+        -- Handle various possible errors.
+        if errName then
+            data.npc:HandleError("Failed to play TTS file with errorName: " .. errName)
+            return
+        end
+        if not IsValid(soundChannel) then
+            data.npc:HandleError("Failed to get a valid soundChannel for TTS file.")
+            return
+        end
 
-function ENT:StartInteraction()
-	GNIL.GPT.Interaction.Start(self)
-end
+        -- Store the voice channel so its position can be tracked/updated
+        -- and then start playing.
+        data.npc.Voice = soundChannel
+        soundChannel:SetPos(data.npc:GetPos())
+        soundChannel:Play()
 
-function ENT:EndInteraction()
-	GNIL.GPT.Interaction.Close()
-end
+        -- Remove the voice channel once finished.
+        timer.Simple(data.length, function()
+            if not IsValid(data.npc) or not IsValid(data.npc.Voice) then
+                return
+            end
+            data.npc.Voice:Stop()
+            data.npc.Voice = nil
+        end)
 
-function ENT:PlayVoice(url, callback)
-	if not url then callback() return end
-	sound.PlayURL(url, "3d", function(snd, err, errstr)
-		if not IsValid(snd) or not IsValid(self) then callback() return end
-		snd:SetPos(self:GetPos())
-		self.voice = snd
-		snd:Play()
-		callback()
-	end)
-end
+        -- TODO: Replace with some nice UI obviously.
+        LocalPlayer():PrintMessage(HUD_PRINTTALK, data.text)
+    end)
 
-local maxdist = 200 * 200
-local mindist = 100 * 100
-local off = Vector(0,0,64)
-function ENT:DrawTranslucent()
-	self:DrawModel()
-	if true then return end -- !!! repalce all this later
-	if self:GetCurrentState() == self.STATE["Listening"] and self:GetListeningTarget() == LocalPlayer() then
-		self:DrawState()
-	end
+end)
 
-	local dist = self:GetPos():DistToSqr(LocalPlayer():GetPos())
-	if dist > maxdist then return end
-
-	local aimVector = LocalPlayer():GetAimVector()
-	local entVector = (self:GetPos() + off) - EyePos()
-	local angCos = aimVector:Dot(entVector) / entVector:Length()
-
-	local dotalpha = math.Clamp(math.ease.InQuad(angCos + .2), 0, 1)
-
-	dist = dist - mindist
-	local alpha = 1 - math.max(.04, dist / maxdist)
-
-	if dotalpha < alpha then
-		alpha = dotalpha
-	end
-	if alpha < 0.2 then return end
-
-	surface.SetAlphaMultiplier(alpha)
-		if self:GetCurrentState() == self.STATE["Thinking"] or (self:GetCurrentState() == self.STATE["Listening"] and self:GetListeningTarget() ~= LocalPlayer()) then
-			self:DrawState()
-		end
-	surface.SetAlphaMultiplier(1)
-end
-
-function ENT:HeadLook()
-	local bone_index = self:LookupBone("ValveBiped.Bip01_Head1")
-
-	if not bone_index then return end
-	local bone_matrix = self:GetBoneMatrix(bone_index)
-	if not bone_matrix then return end
-
-	if IsValid(self.look_target) then
-		local ply_eyes = self.look_target:EyePos()
-		self:SetEyeTarget(ply_eyes)
-
-		-- this is absolute position
-		local bone_pos = bone_matrix:GetTranslation()
-		local dir = (ply_eyes - bone_pos):GetNormalized()
-		local new_angle = dir:Angle()
-
-		-- this is absolute angle
-		local old_angle = bone_matrix:GetAngles()
-		self.look_angle = self.look_angle or old_angle
-
-		new_angle:RotateAroundAxis(new_angle:Up(),90)
-		new_angle:RotateAroundAxis(new_angle:Right(),90)
-		new_angle:RotateAroundAxis(new_angle:Up(),-15)
-
-		self.look_angle_target = new_angle
-	else
-		local new_angle = self:GetAngles()
-		new_angle:RotateAroundAxis(new_angle:Right(),90)
-		new_angle:RotateAroundAxis(new_angle:Forward(),90)
-		new_angle:RotateAroundAxis(new_angle:Up(),-15)
-
-		self.look_angle_target = new_angle
-	end
-
-	self.look_angle = LerpAngle(.02, self.look_angle or Angle(0,0,0),self.look_angle_target or Angle(0,0,0))
-
-	-- todo: !!! angle clamping or what ever the fuck it needs
-
-	bone_matrix:SetAngles(self.look_angle)
-	self:SetBoneMatrix(bone_index, bone_matrix)
-end
-
-local voice_offset = Vector(0,0,64)
+-- Idea stolen directly from the original NPC made by @Blueasharky
+local VoiceOffset = Vector(0, 0, 64)
 function ENT:Think()
-	if IsValid(self.voice) then
-		local v = self:GetPos()
-		v:Add(voice_offset)
-		self.voice:SetPos(v)
-	end
 
-	if self:GetCurrentState() == 3 then return end
-	local ply = IsValid(self:GetListeningTarget()) and self:GetListeningTarget() or self:FindClosestInSphere(nil, 150, function(_, e) return type(e) == "Player" end)
+    local voice = self.Voice
+    if voice != nil and IsValid(voice) then
 
-	if ply then
-		self.look_target = ply
-	elseif self.look_target then
-		self.look_target = nil
-	end
+        local v = self:GetPos()
+        v:Add(VoiceOffset)
+        voice:SetPos(v)
 
-	self:SetupBones()
+    end
+
 end
-
-function ENT:AltRemove() end
-
-function ENT:OnRemove()
-	if IsValid(self.voice) then
-		self.voice:Stop()
-		self.voice = nil
-	end
-	self:AltRemove()
-end
-

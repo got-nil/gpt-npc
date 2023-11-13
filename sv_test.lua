@@ -129,6 +129,29 @@ local function playURL(ply, url)
     end
 end
 
+concommand.Add("gpt_test2", function()
+
+    local brain = MODULE._static.brain
+
+    local gpt_params = GNIL.GPT.Classes.GPTParameters:New()
+        :AddMessage("hello there how are you?", "user")
+        :SetSystemPrompt("balls")
+
+    local tts_params = GNIL.GPT.Classes.TTSParameters:New()
+        :SetProvider(GNIL_GPT_SPEECH_PROVIDER_ELEVENLABS)
+
+    local out = brain:Think(gpt_params, tts_params)
+    if not out then
+        return MODULE:log("could not start GPT task")
+    end
+
+    out:OnSuccess(function(...)
+        MODULE:log({t = "SUCCESS", args = {...}})
+    end):OnError(function(state, msg)
+        MODULE:log({t = "ERROR", state = state, msg = msg})
+    end)
+end)
+
 concommand.Add("gpt_tts", function(ply, __, args)
 
     if #args == 0 then
@@ -179,7 +202,7 @@ concommand.Add("gpt_record", function(ply, _, args)
 
         -- End of recording.
         local cancelled = args[1] == "1"
-        local out = recorder:StopRecording(cancelled)
+        local out, _ = recorder:StopRecording(cancelled)
         ply:log(timePrefix() .. (out && "Successfully ended" || "Failed to end") .. " voice recording." .. (cancelled && " [CANCELLED]" || ""))
 
     else

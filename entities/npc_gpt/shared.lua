@@ -1,36 +1,115 @@
+local MODULE = MODULE
+
+ENT.GPTNPC = true -- Identifier
 ENT.Base = "base_nextbot"
 ENT.Spawnable = true
 ENT.AdminOnly = true
-ENT.PrintName = "GPT NEW"
-ENT.Author = math.random(0, 1) == 0 && "morgverd & Virtualraptor" || "Virtualraptor & morgverd"
+ENT.PrintName = "AI Chatbot"
+ENT.Author = "morgverd"
 ENT.RenderGroup = RENDERGROUP_TRANSLUCENT
 
-MODULE:IncludeDirectory("entities/npc_gpt/extended")
+ENT.State = 0
+ENT.StateHandlers = ENT.StateHandlers or {}
 
--- c:
-ENT.STATE = {
-    [1] = "Idle",
-    [2] = "Listening",
-    [3] = "Thinking",
-    [4] = "Talking",
-    [5] = "Generic",
-    ["Idle"] = 1,
-    ["Listening"] = 2,
-    ["Thinking"] = 3,
-    ["Talking"] = 4,
-    ["Generic"] = 5,
+ENT.Config = {
+    RecorderTimeout = 20,
+    NearbySearchRadius = 200,
+    CancelRadiusSqr = 500 ^ 2
 }
 
+-------------------------------------------------------------------------
+
 function ENT:SetupDataTables()
-    self:NetworkVar("Int", 0, "AIState")
+    self:NetworkVar("Int", 0, "NetState")
     self:NetworkVar("Int", 1, "Age")
-    self:NetworkVar("Int", 2, "CurrentState")
     self:NetworkVar("String", 0, "DisplayName")
-    self:NetworkVar("String", 1, "Mood")
-    self:NetworkVar("String", 2, "CountryCode")
-    self:NetworkVar("String", 3, "Gender")
     self:NetworkVar("Entity", 0, "ListeningTarget")
-    self:NetworkVar("Vector", 0, "NameColor")
-    self:NetworkVar("Vector", 1, "TextColor")
-    self:NetworkVar("Bool", 0, "IsFeminine")
+
+    -- On client make sure we're calling the normal SetState
+    -- so the ExitState and EnterState is actually called.
+    if CLIENT then
+        self:NetworkVarNotify("NetState", function(self, _, __, new)
+            if not IsValid(self) then
+                return
+            end
+            self:SetState(new)
+        end)
+    end
+end
+
+-------------------------------------------------------------------------
+
+function ENT:GetState()
+    if CLIENT and self.State == 0 then
+        return self:GetNetState()
+    end
+    return self.State
+end
+
+function ENT:SetState(state, ...)
+
+    -- Exit the current state.
+    self:RunStateHandler("ExitState", state)
+
+    -- Set the new state.
+    self.State = state
+    if SERVER then
+        self:SetNetState(state)
+    end
+
+    -- Call EnterState for state setup.
+    self:RunStateHandler("EnterState", ...)
+end
+
+-------------------------------------------------------------------------
+
+function ENT:GetStateHandler()
+    return self.StateHandlers[self:GetState()]
+end
+
+function ENT:RunStateHandler(name, ...)
+    local handler = self:GetStateHandler()
+    if handler == nil then
+        return false
+    end
+    local fn = handler[name]
+    if isfunction(fn) then
+        fn(self, ...)
+        return true
+    end
+    return false
+end
+
+-------------------------------------------------------------------------
+
+function ENT:ChatMessage(chatMessage)
+
+    if CLIENT then
+        LocalPlayer():PrintMessage(HUD_PRINTTALK, chatMessage)
+    else
+
+        -- As the server, find all players near to the NPC and
+        -- use the net lib ChatMessage to send the messages.
+        for _, v in ipairs(self:FindNearbyPlayers()) do
+            v:ChatMessage(chatMessage)
+        end
+    end
+end
+
+-- This is called when something goes wrong in the NPC.
+function ENT:HandleError(errorMessage)
+
+    self:ChatMessage("Encountered unexpected error: " .. errorMessage)
+
+    -- Lock the NPC in a busy state for 5 seconds so the
+    -- user has a little bit of time to acknowledge the error.
+    if SERVER then
+        self:SetState(GNIL_GPT_NPC_STATE_BUSY)
+        timer.Simple(5, function()
+            if not IsValid(self) then
+                return
+            end
+            self:SetState(GNIL_GPT_NPC_STATE_IDLE)
+        end)
+    end
 end
