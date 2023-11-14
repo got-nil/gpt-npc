@@ -3,9 +3,13 @@ GNIL.GPT.Voice = GNIL.GPT.Voice or {
     ["_listening"] = {}
 }
 
-eightbit.SetBroadcastIP(config:Get("relay_ip"))
-eightbit.SetBroadcastPort(config:Get("relay_port"))
-eightbit.EnableBroadcast(true)
+-- Only broadcast when we're not in debug mode.
+local isDebug = config:Get("debug", false)
+if not isDebug then
+    eightbit.SetBroadcastIP(config:Get("relay_ip"))
+    eightbit.SetBroadcastPort(config:Get("relay_port"))
+end
+eightbit.EnableBroadcast(not isDebug)
 
 function GNIL.GPT.Voice.Start(userid, voice_id)
     assert(isnumber(userid), "The provided userid MUST be a number")

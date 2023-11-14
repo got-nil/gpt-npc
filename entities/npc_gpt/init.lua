@@ -81,3 +81,13 @@ function ENT:Think()
     end
 
 end
+
+-- Nextbot behaviour coroutine.
+-- TODO: Make it actually do stuff.
+function ENT:RunBehaviour()
+    while true do
+        self:StartActivity(ACT_IDLE)
+        self:SetSequence("lineidle0" .. math.random(3))
+        coroutine.wait(60 * 10)
+    end
+end
