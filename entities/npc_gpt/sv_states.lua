@@ -136,7 +136,19 @@ ENT.StateHandlers = {
 
             -- Make sure its the same state.
             local isSameState = function()
+
+                -- This function is only called inside of the Promise resolvers,
+                -- so we can remove the promise from the ent here.
+                self.ThinkPromise = nil
+
                 return self:GetState() == GNIL_GPT_NPC_STATE_THINKING
+            end
+
+            -- If there is somehow already a ThinkPromise, then cancel it
+            -- before we overwrite it. I have no idea how this could happen,
+            -- but I suppose its good just to play it safe.
+            if self.ThinkPromise then
+                self.ThinkPromise:Cancel()
             end
 
             -- Create a GPT Parameter set with the users input message.
@@ -148,7 +160,7 @@ ENT.StateHandlers = {
                 )
 
             -- Create the thinking promise and then wait for it to resolve.
-            self.Brain:Think(gpt_params)
+            self.ThinkPromise = self.Brain:Think(gpt_params)
                 :OnSuccess(function(data)
 
                     if not IsValid(self) or not isSameState() then
@@ -168,6 +180,16 @@ ENT.StateHandlers = {
                     self:HandleError("Failed to think: " .. errorMessage)
 
                 end)
+
+        end,
+
+        ExitState = function(self)
+
+            -- If there is a pending ThinkPromise then cancel it.
+            -- This could maybe save us from an unneeded TTS request.
+            if self.ThinkPromise then
+                self.ThinkPromise:Cancel()
+            end
 
         end,
 

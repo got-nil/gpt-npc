@@ -21,13 +21,18 @@ function Brain:Think(gpt_params, tts_params)
     -- Start GPT task.
     local gpt = self:GPT(gpt_params)
     if not gpt then return false end
-    local promise = GNIL.Thirdparty.middleclass("Promise"):IncludeMixin(GNIL.ClassMixins.Promise)
+    local promise = GNIL.GPT.Classes.CancellablePromise:New()
 
     -- Attach GPT task callbacks, either rejecting promise
     -- or starting TTS task to generate the mp3 URL.
     gpt:OnError(function(...)
         return promise:Error(...)
     end):OnSuccess(function(responseMessage)
+
+        -- If the Promise has been cancelled, then don't continue.
+        if promise:IsCancelled() then
+            return
+        end
 
         -- There should always be a valid response message in a
         -- success, but make sure again just incase.
