@@ -103,7 +103,7 @@ ENT.StateHandlers = {
 
             -- Ignore interactions from random people.
             if ply != self:GetListeningTarget() then
-                ply:ChatMeessage("Go away, I'm listening to someone else right now!")
+                ply:ChatMessage("Go away, I'm listening to someone else right now!")
                 return
             end
 

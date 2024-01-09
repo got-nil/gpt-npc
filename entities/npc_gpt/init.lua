@@ -77,6 +77,7 @@ function ENT:Think()
         local dist = self:GetPos():DistToSqr(target:GetPos())
         if dist > self.Config.CancelRadiusSqr then
             self:SetState(GNIL_GPT_NPC_STATE_IDLE)
+            self:ChatMessage("How rude! Walking away from someone in the middle of a conversation!")
         end
     end
 
