@@ -53,7 +53,7 @@ end
 local function startTimeout(self, timeout)
 
     -- Make sure we only have one timer per recorder.
-    timer.Create("gnil_recorder_timeout_" .. tostring(self._voice_id), timeout, 1, function()
+    timer.Create("gnil_recorder_timeout_" .. self._voice_id, timeout, 1, function()
 
         -- If we're still recording when we've timedout then
         -- cancel it and raise a timeout error.
@@ -68,7 +68,7 @@ end
 
 function Recorder:Initialize(userid)
     self._userid = userid
-    self._voice_id = math.random(100000000, 999999999)
+    self._voice_id = GNIL.GPT.Voice.GenerateID()
     self._recording = false
     self._task = false
     self._start_time = false
@@ -149,13 +149,13 @@ end
 
 function Recorder:ToTable()
     return {
-        voice_id = tostring(self._voice_id),
+        voice_id = self._voice_id,
         raw = self._raw_recording
     }
 end
 
 function Recorder:__tostring()
-    return tostring(self._voice_id)
+    return self._voice_id
 end
 
 return {

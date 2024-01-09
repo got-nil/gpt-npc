@@ -189,6 +189,7 @@ concommand.Add("gpt_record", function(ply, _, args)
         recorder = MODULE._static.recorders[tostring(userid)]
     else
         recorder = GNIL.GPT.Classes.Recorder:New(userid)
+            :SetRaw(true)
             :OnSuccess(function(out)
                 if recorder:IsRaw() then playURL(ply, out) end
                 ply:log(timePrefix() .. "Record Out: " .. out)

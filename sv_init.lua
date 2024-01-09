@@ -12,6 +12,9 @@ MODULE.config_structure = {
     default_system_prompt = {nil, TYPE_STRING, false}
 }
 
+-- Latest gpt-talk-module VERSION.
+local ModuleLatestVersion = "2.0.0"
+
 --[[
 
     This module requires GWSockets dll and a connected GPT-API
@@ -36,10 +39,17 @@ MODULE.OnInit = function()
         end
     end
 
-    -- Make sure its the GPT build of eightbit.
+    -- Ensure we're actually running the modified build.
     if not eightbit.IsRecording then
         MODULE:log("The module requires a modified build of eightbit.", "error")
         return false
+    end
+
+    -- Very basic version checking to ensure we're running latest where possible.
+    if eightbit.VERSION == ModuleLatestVersion then
+        MODULE:log("Loaded latest modified eightbit build, version " .. ModuleLatestVersion .. ".", "debug")
+    else
+        MODULE:log("Invalid/Out of date modified eightbit build version. Current: " .. eightbit.VERSION .. ", Latest: " .. ModuleLatestVersion .. ".", "warning")
     end
 
     --  Reset the websocket class, should re-initialize each time.

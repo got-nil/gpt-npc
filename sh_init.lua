@@ -1,7 +1,14 @@
 
 MODULE.name = "GPT NPCs"
-MODULE.author = {"morgverd", "virtualraptor"}
-MODULE.description = "Voice Interactable NPC base using GPT."
+MODULE.author = "morgverd"
+MODULE.description = {
+    "Voice Interactable NPC base using GPT.",
+    [[
+        Special thanks to Virtualraptor who helped massively in
+        general lua advice, creating the initial NPC prototypes
+        and giving me random API design inspiration (used in this module).
+    ]]
+}
 
 MODULE:RequireModule("net")
 MODULE:RequireExtension("net")

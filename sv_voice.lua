@@ -11,9 +11,20 @@ if not isDebug then
 end
 eightbit.EnableBroadcast(not isDebug)
 
+-- Generate a 15 digit integer to be used as the voice_id. The total
+-- identifier is 17, with the last two being used for terminator control.
+-- Use the current time as start to reduce chances of collision.
+function GNIL.GPT.Voice.GenerateID()
+    local out = string.Explode("", tostring(os.time()))
+    for i = 1, 15 - #out do
+        table.insert(out, math.random(1, 9))
+    end
+    return table.concat(out)
+end
+
 function GNIL.GPT.Voice.Start(userid, voice_id)
     assert(isnumber(userid), "The provided userid MUST be a number")
-    assert(isnumber(voice_id), "The provided voice_id MUST be a number")
+    assert(isstring(voice_id) and #voice_id == 15, "The provided voice_id MUST be a 15 digit string")
 
     if eightbit.IsRecording(userid) then return false end
     if eightbit.StartRecording(userid, voice_id) then
