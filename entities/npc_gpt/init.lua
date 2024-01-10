@@ -1,5 +1,4 @@
 local MODULE = MODULE
-MODULE:Include("entities/npc_gpt/sv_states.lua")
 
 GNIL.Net.AddNetworkString("gpt_npc_speak")
 

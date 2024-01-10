@@ -1,4 +1,10 @@
 local MODULE = MODULE
+
+-- Add entity icon materials (after shared).
+for _, v in pairs(ENT.IconMaterialPaths) do
+    resource.AddFile("materials/" .. v)
+end
+
 ENT.StateHandlers = {
 
     [GNIL_GPT_NPC_STATE_IDLE] = {

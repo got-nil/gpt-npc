@@ -11,6 +11,16 @@ ENT.RenderGroup = RENDERGROUP_TRANSLUCENT
 ENT.State = 0
 ENT.StateHandlers = ENT.StateHandlers or {}
 
+ENT.IconMaterialPaths = {
+
+    ["Alert"]       = "gpt-npc/images/alert.png",
+    ["Brain"]       = "gpt-npc/images/brain.png",
+    ["Female"]      = "gpt-npc/images/female.png",
+    ["Male"]        = "gpt-npc/images/male.png",
+    ["Recording"]   = "gpt-npc/images/recording.png"
+
+}
+
 ENT.Config = {
     RecorderTimeout = 20,
     NearbySearchRadius = 200,
@@ -85,7 +95,11 @@ end
 function ENT:ChatMessage(chatMessage)
 
     if CLIENT then
-        LocalPlayer():PrintMessage(HUD_PRINTTALK, chatMessage)
+        local ply = LocalPlayer()
+        if not IsValid(ply) then
+            return
+        end
+        ply:PrintMessage(HUD_PRINTTALK, chatMessage)
     else
 
         -- As the server, find all players near to the NPC and
@@ -113,3 +127,10 @@ function ENT:HandleError(errorMessage)
         end)
     end
 end
+
+-------------------------------------------------------------------------
+
+for _, realm in pairs(SERVER && {"sv", "cl"} || {"cl"}) do
+    MODULE:Include("entities/npc_gpt/states/" .. realm .. "_states.lua")
+end
+MODULE:IncludeDirectory("entities/npc_gpt/client")

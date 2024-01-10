@@ -48,7 +48,7 @@ MODULE:GetExtension("net"):Receive("gpt_npc_speak", function()
 
 end)
 
--- Idea stolen directly from the original NPC made by @Blueasharky
+-- Idea stolen directly from the original NPC made by Virtualraptor.
 local VoiceOffset = Vector(0, 0, 64)
 function ENT:Think()
 
@@ -60,5 +60,4 @@ function ENT:Think()
         voice:SetPos(v)
 
     end
-
 end
