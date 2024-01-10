@@ -38,9 +38,9 @@ if CLIENT then
     }
 
     MODULE:AddHook("OnPlayerChat", "GPT.Mute.Chat", function(ply, txt)
-        if ply ~= LocalPlayer() or txt:sub(1,8) ~= "/gptmute" then return end
+        if ply != LocalPlayer() or txt:sub(1,8) != "/gptmute" then return end
         local bool = txt:Trim():sub(10,#txt)
-        if states[bool] ~= nil then
+        if states[bool] != nil then
             if bool == "" then
                 GNIL.GPT.Mute.ToggleGPTMuted()
             else
