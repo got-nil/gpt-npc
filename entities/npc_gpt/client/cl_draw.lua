@@ -1,7 +1,7 @@
 local MODULE = MODULE
 
-local IconOffset, IconWidth, IconHeight = Vector(0, 0, 18), 512, 512
-local IconSize = 312
+local IconOffset, AlphaOffset = Vector(0, 0, 18), Vector(0, 0, 64)
+local IconWidth, IconHeight, IconSize = 512, 512, 1200
 
 -- Get the materials from shared paths.
 local IconMaterials = {}
@@ -13,11 +13,21 @@ for k, v in pairs(ENT.IconMaterialPaths) do
     IconMaterials[k] = mat
 end
 
--- This is called for every frame, so keep it optimised.
 local CenterWidth, CenterHeight = ScrW() * .5, ScrH() * .5
-function ENT:Draw()
+local Config = ENT.Config
+local MinDist, MaxDist = 100 * 100, 300 * 300
+
+-- This is called for every frame, so keep it optimised.
+function ENT:DrawTranslucent()
 
     self:DrawModel()
+
+    -- Make sure player isn't too far away.
+    local ply, entPos = LocalPlayer(), self:GetPos()
+    local distance = entPos:DistToSqr(ply:GetPos())
+    if distance > MaxDist then
+        return
+    end
 
     -- Only actually draw stuff if we have a state handler.
     local stateHandler = self:GetStateHandler()
@@ -25,16 +35,25 @@ function ENT:Draw()
         return
     end
 
-    -- If the state has its own Draw function, call it.
-    local drawFn = stateHandler.Draw
-    if drawFn then drawFn(self) end
+    -- Copied from Virtualraptor, fade the surface away as distance increases.
+    local eyesPos = ply:EyePos()
+    local entVector = (entPos + AlphaOffset) - eyesPos
+    local angCos = ply:GetAimVector():Dot(entVector) / entVector:Length()
+    local dotAlpha = math.Clamp(math.ease.InQuad(angCos + .2), 0, 1)
+    distance = distance - MinDist
+    local alpha = 1 - math.max(.04, distance / MaxDist)
+    if dotAlpha < alpha then alpha = dotAlpha end
+    if alpha < 0.2 then return end
 
-    -- If there is actually a state icon, show it.
     local iconName = stateHandler.Icon
     local iconMaterial = iconName and IconMaterials[iconName]
-    if iconMaterial then
+    local showNameplate = stateHandler.showNameplate or true
+    local paintFn = stateHandler.Paint
 
-        local eyes = LocalPlayer():EyeAngles()
+    if iconMaterial or showNameplate or paintFn then
+
+        -- TODO: Look into optimising the attachment, cache after first time.
+        local eyesAngle = ply:EyeAngles()
         local head = self:GetAttachment(
             self:LookupAttachment("anim_attachment_head") or 0
         )
@@ -45,17 +64,37 @@ function ENT:Draw()
         local base = Either(head and head.Pos, head.Pos, (
             self:LocalToWorld(self:OBBCenter()) + self:GetUp() * 24
         ))
-        local pos = base + IconOffset + eyes:Up()
+        local pos = base + eyesAngle:Up()
 
         -- Turn to face player.
-        eyes:RotateAroundAxis(eyes:Forward(), 90)
-        eyes:RotateAroundAxis(eyes:Right(), 90)
+        eyesAngle:RotateAroundAxis(eyesAngle:Forward(), 90)
+        eyesAngle:RotateAroundAxis(eyesAngle:Right(), 90)
 
-        cam.Start3D2D(pos, Angle(0, eyes.y, 90), 0.05)
-            surface.SetMaterial(iconMaterial)
-            surface.SetDrawColor( 0, 0, 0, 255 )
-            surface.DrawTexturedRect(-IconSize / 2, -IconSize / 2, IconSize, IconSize)
+        surface.SetAlphaMultiplier(alpha)
+        cam.Start3D2D(pos, Angle(0, eyesAngle.y, 90), 0.01)
+
+            if iconMaterial then
+                surface.SetMaterial(iconMaterial)
+                surface.SetDrawColor(0, 0, 0, 255)
+                surface.DrawTexturedRect(-IconSize / 2, -IconSize * 1.8, IconSize, IconSize)
+            end
+
+            if showNameplate then
+
+                --[[
+
+                    TODO: for prof.
+
+                --]]
+
+            end
+
+            if paintFn then
+                paintFn(self)
+            end
+
         cam.End3D2D()
+        surface.SetAlphaMultiplier(1)
 
     end
 end
