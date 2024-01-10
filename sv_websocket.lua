@@ -1,6 +1,14 @@
 
 local MODULE, GPTWebsocket = MODULE, GNIL.Thirdparty.middleclass("GPTWebsocket", GNIL.Classes.Websocket)
 
+--[[
+
+    receive_task:
+        Signal sent when a task data response is being received
+        by the socket. The response could still be error state here.
+
+--]]
+
 function GPTWebsocket:Initialize()
 
     -- Initialize base websocket connection.
@@ -44,7 +52,8 @@ function GPTWebsocket:OnMessage(message)
         return
     end
 
-    -- Cancel the task now there has been a response.
+    -- Signal & Cancel the task now there has been a response.
+    self:EmitSignal("receive_task", task, state)
     task:Remove()
 
     -- If its an error response, just call the error event directly

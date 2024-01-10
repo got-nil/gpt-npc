@@ -63,6 +63,8 @@ MODULE.OnLoadFinished = function()
     -- (the websocket will automatically attempt reconnections afterwards)
     -- (Don't log on successful connection since its already logged on the class)
     GNIL.GPT.Tasks.LoadAll()
+
+    GNIL.GPT.SetupDebug()
     GNIL.GPT.Test()
 
     GNIL.GPT.Websocket:Open(function(state)
