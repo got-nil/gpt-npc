@@ -7,12 +7,22 @@ MODULE:GetExtension("net"):Receive("gpt_npc_speak", function()
         url = net.ReadString(),
         length = net.ReadFloat(),
         driver = net.ReadString(),
-        text = net.ReadString()
+        text = net.ReadString(),
+        has_timepoints = net.ReadBool()
     }
 
     -- Make sure we're getting a valid GPT NPC NPC reference.
     if not IsValid(data.npc) or not data.npc.GPTNPC then
         return
+    end
+
+    -- If there are timepoints, also get those.
+    if data.has_timepoints then
+        local timepoints = {}
+        for i = 1, net.ReadUInt(12) do
+            timepoints[i] = net.ReadDouble()
+        end
+        data.timepoints = timepoints
     end
 
     sound.PlayURL(data.url, "3d", function(soundChannel, _, errName)

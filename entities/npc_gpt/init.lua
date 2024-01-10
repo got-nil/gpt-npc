@@ -16,17 +16,13 @@ function ENT:Initialize()
     -- fix whatever weird billing issue is stopping me from using
     -- GoogleCloud properly. Pretty sure I have my old card on it.
     self.Brain:GetTTSParameters():SetProvider(
-        GNIL_GPT_SPEECH_PROVIDER_ELEVENLABS
+        GNIL_GPT_SPEECH_PROVIDER_GOOGLECLOUD
     )
 end
 
 function ENT:Use(ply)
     if not IsPlayer(ply) then return end
     self:RunStateHandler("Use", ply)
-end
-
-function ENT:OnTakeDamage()
-    return false
 end
 
 -- When the NPC is being removed, set its state to Busy.
@@ -38,16 +34,31 @@ end
 
 function ENT:Speak(url, data)
 
+    local has_timepoints = data.message.timepoints != nil
+    local nm = GNIL.Net.Create("gpt_npc_speak")
+        :WriteEntity(self)
+        :WriteString(url)
+        :WriteFloat(data.length)
+        :WriteString(data.driver)
+        :WriteString(data.message.text)
+        :WriteBool(has_timepoints)
+
+    -- If there are timepoints, also write them to the message.
+    if has_timepoints then
+
+        local len = data.message.timepoints.len
+        local times = data.message.timepoints.data
+        assert(isnumber(len), "Provided timepoints length must be a number.")
+
+        nm:WriteUInt(len, 12) -- 4095 words max
+        for i = 1, len do
+            nm:WriteDouble(times[i][2])
+        end
+    end
+
     -- Send the TTS speak data to all nearby players.
-    -- TODO: GoogleCloud timemarkers.
     for _, v in ipairs(self:FindNearbyPlayers()) do
-        GNIL.Net.Create("gpt_npc_speak")
-            :WriteEntity(self)
-            :WriteString(url)
-            :WriteFloat(data.length)
-            :WriteString(data.driver)
-            :WriteString(data.message.text)
-        :Send(v)
+        nm:Send(v)
     end
 end
 
@@ -90,4 +101,9 @@ function ENT:RunBehaviour()
         self:SetSequence("lineidle0" .. math.random(3))
         coroutine.wait(60 * 10)
     end
+end
+
+-- Don't take any damage.
+function ENT:OnTakeDamage()
+    return 0
 end
