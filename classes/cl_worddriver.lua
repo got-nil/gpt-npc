@@ -26,15 +26,16 @@ ClassAccessorFunc(WordDriver, {
 function WordDriver:Initialize(font_name, max_width)
     self._id = GNIL.Utils.Random(6)
     self._active = false
-    self._index = 0
+    self._index = 1
 
-    self._max_width = max_width or ScrW() / 2
+    self._max_width = max_width or ScrW() / 1.5
     self:SetFontName(font_name or "ChatMessage.Small")
     self._font_height = 0
 
     self._words = {}
     self._times = {}
     self._word_count = 0
+    self._max_lines = 4
 
     self._real_times = {}
     self._next_time = 0
@@ -42,14 +43,14 @@ function WordDriver:Initialize(font_name, max_width)
     self._draw_lines = false
 end
 
-function WordDriver:Ingest(text, timepoints)
+function WordDriver:Ingest(text, timepoints, length)
 
     -- Use timepoints if provided, otherwise use average word length.
     local words, times = string.Explode("[ ]+", text, true), {}
     if timepoints then
         times = timepoints
     else
-        local duration = data.length * 0.95
+        local duration = length * 0.95
         local avgdelay = duration / #words
 
         -- Elevenlabs does not tell us when the words are said, so use average.
@@ -64,31 +65,43 @@ function WordDriver:Ingest(text, timepoints)
     return self
 end
 
+-- Called in HUDPaint before Draw.
 local sysTime, textWrap, tableConcat, stringExplode = SysTime, string.TextWrap, table.concat, string.Explode
 function WordDriver:Think()
-    local next_time = self._next_time
-    if not self._active or not next_time then return end
+    local next_time = self._next_time or 0
+    if not self._active then return end
 
     local systime = sysTime()
-    if next_time <= systime then
+    if next_time < systime then
 
-        local index = self._index
-
+        -- Get the current wrapped text (in entirety).
+        local index, word_count = self._index, self._word_count
         local wrappedText = textWrap(
             self._font_name,
             tableConcat(self._words, " ", 1, index),
             self._max_width
         )
-        self._draw_lines = stringExplode("\n", wrappedText)
 
-        index = index + 1
-        if index >= self._word_count then
+        -- Seperate the text into a table of new lines.
+        local all_lines = stringExplode("\n", wrappedText)
+        local line_count, max_lines = #all_lines, self._max_lines
+
+        -- Clamp the amount of lines to max_lines.
+        local lines, start = {}, line_count - max_lines > 0 && line_count - max_lines || 1
+        for i = start, line_count, 1 do
+            lines[i - start + 1] = all_lines[i]
+        end
+        self._draw_lines = lines
+
+        -- Prevent overflows.
+        if index >= word_count then
             self:Stop()
             return
         end
 
-        self._next_time = self._real_times[index + 1]
-        self._index = index
+        -- Update the index and next runtime.
+        self._index = index + 1
+        self._next_time = self._real_times[index + 1] or 0
     end
 end
 
@@ -103,7 +116,7 @@ function WordDriver:Start(globally_add)
 
     self._real_times = out
     self._active = true
-    self._index = 1
+    self._index = 0
 
     -- Add the driver to the UI if the argument is set.
     if globally_add and not self._driver_added then
