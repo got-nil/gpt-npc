@@ -52,11 +52,11 @@ else
 
     GNIL.Net.AddNetworkString("gpt_mute")
 
-    MODULE:GetExtension("net"):Receive("gpt_mute", function(_, ply)
+    MODULE:GetExtension("net"):Receive("gpt_mute", function(_, ply, reply)
         local mute = net.ReadBool()
         ply._gpt_muted = mute
         ply._gpt_currentinteraction:EndListening(true)
-        return GNIL.Net.CreateReply():WriteBool(mute)
+        return reply:WriteBool(mute)
     end)
 
     function GNIL.GPT.Mute.IsGPTMuted(ply)

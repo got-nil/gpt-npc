@@ -14,9 +14,9 @@ if CLIENT then
     local LocalPlayer = LocalPlayer
 
     -- Receive hash request, sending back if there is one.
-    Net:Receive("gpt_tos", function()
+    Net:Receive("gpt_tos", function(_, __, reply)
         local out = LocalPlayer():GetPData("gpt_tos_hash")
-        local reply = GNIL.Net.CreateReply():WriteBool(out != nil)
+        reply:WriteBool(out != nil)
         if out != nil then
             reply:WriteString(out)
         end
@@ -107,7 +107,7 @@ else
     -- the TOS. Send the correct hash back and cache state.
     GNIL.Net.AddNetworkStrings("gpt_tos", "gpt_tos_show")
 
-    Net:Receive("gpt_tos", function(_, ply)
+    Net:Receive("gpt_tos", function(_, ply, reply)
         local steamid = ply:SteamID64()
         ply._gpt_tos_seen = true
         -- Remove request. Player TOS state is being removed.
@@ -118,7 +118,7 @@ else
 
         -- Don't send a hash back if the player already accepted TOS.
         local exists = GNIL.GPT.TOS["_r"][steamid] == true
-        local reply = GNIL.Net.CreateReply():WriteBool(not exists)
+        reply:WriteBool(not exists)
         if exists then return reply end
         GNIL.GPT.TOS["_r"][steamid] = true
         return reply:WriteString(getHash(steamid))
