@@ -24,7 +24,8 @@ ENT.IconMaterialPaths = {
 ENT.Config = {
     RecorderTimeout = 20,
     NearbySearchRadius = 200,
-    CancelRadiusSqr = 500 ^ 2
+    CancelRadiusSqr = 500 ^ 2,
+    MessageHistory = 3
 }
 
 -------------------------------------------------------------------------

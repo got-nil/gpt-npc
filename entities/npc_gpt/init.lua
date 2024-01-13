@@ -34,7 +34,7 @@ end
 
 function ENT:Speak(url, data)
 
-    local has_timepoints = data.message.timepoints != nil
+    local has_timepoints = data.timepoints != nil
     local nm = GNIL.Net.Create("gpt_npc_speak")
         :WriteEntity(self)
         :WriteString(url)
@@ -46,8 +46,8 @@ function ENT:Speak(url, data)
     -- If there are timepoints, also write them to the message.
     if has_timepoints then
 
-        local len = data.message.timepoints.len
-        local times = data.message.timepoints.data
+        local len = data.timepoints.len
+        local times = data.timepoints.data
         assert(isnumber(len), "Provided timepoints length must be a number.")
 
         nm:WriteUInt(len, 12) -- 4095 words max
@@ -90,7 +90,6 @@ function ENT:Think()
             self:ChatMessage("How rude! Walking away from someone in the middle of a conversation!")
         end
     end
-
 end
 
 -- Nextbot behaviour coroutine.

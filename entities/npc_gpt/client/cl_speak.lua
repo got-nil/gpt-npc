@@ -28,13 +28,19 @@ MODULE:GetExtension("net"):Receive("gpt_npc_speak", function()
     -- Setup the subtitles.
     local wordDriver = GNIL.GPT.Classes.WordDriver:New():Ingest(
         data.text,
-        data.timepoints
+        data.timepoints,
+        data.length
     )
 
     local wordDriverId = wordDriver:GetID()
     data.npc._word_drivers[wordDriverId] = wordDriver
 
     sound.PlayURL(data.url, "3d", function(soundChannel, _, errName)
+
+        -- Make sure the NPC is still valid.
+        if not IsValid(data.npc) then
+            return
+        end
 
         -- Handle various possible errors.
         if errName then
@@ -65,11 +71,7 @@ MODULE:GetExtension("net"):Receive("gpt_npc_speak", function()
 
             data.npc._word_drivers[wordDriverId] = nil
         end)
-
-        -- TODO: Replace with some nice UI obviously.
-        LocalPlayer():PrintMessage(HUD_PRINTTALK, data.text)
     end)
-
 end)
 
 -- Idea stolen directly from the original NPC made by Virtualraptor.
