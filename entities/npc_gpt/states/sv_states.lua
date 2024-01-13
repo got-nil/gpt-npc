@@ -41,7 +41,7 @@ ENT.StateHandlers = {
 
             -- Tell the user when the recording has finished.
             local finishedRecording = function()
-                if IsValid(target) then
+                if self.Recorder then
                     target:ChatMessage("Finished/Stopped recording!")
                 end
             end
@@ -157,12 +157,21 @@ ENT.StateHandlers = {
                 self.ThinkPromise:Cancel()
             end
 
+            -- Get the SteamID64 of ListeningTarget.
+            local listeningTarget = self:GetListeningTarget()
+            if not IsValid(listeningTarget) then
+                self:HandleError("Listening target has become invalid.")
+                return
+            end
+            local steamid64 = listeningTarget:SteamID64()
+
             -- Create a GPT Parameter set with the users input message.
             local gpt_params = GNIL.GPT.Classes.GPTParameters:New()
+                :SetHistory(steamid64, self.Config.MessageHistory)
                 :AddMessage(
                     userInputText,
                     "user",
-                    self:GetListeningTarget():SteamID64()
+                    steamid64
                 )
 
             -- Create the thinking promise and then wait for it to resolve.
