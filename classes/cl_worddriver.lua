@@ -1,18 +1,45 @@
 local WordDriver = GNIL.Thirdparty.middleclass("WordDriver")
+ClassAccessorFunc(WordDriver, {
+    ID = FuncAccessors.ReadOnly("_id"),
+    FontHeight = FuncAccessors.ReadOnly("_font_height"),
+    MaxWidth = {"_max_width", FORCE_NUMBER},
+    FontName = {
+        var = "_font_name",
+        force = FORCE_STRING,
+        set = function(self, value)
 
-function WordDriver:Initialize()
+            if not isstring(value) then
+                return false
+            end
+
+            -- Cache the font height as we set it.
+            surface.SetFont(value)
+            local _, height = surface.GetTextSize("A")
+            self._font_height = height
+            self._font_name = value
+
+            return true
+        end
+    },
+})
+
+function WordDriver:Initialize(font_name, max_width)
+    self._id = GNIL.Utils.Random(6)
     self._active = false
     self._index = 0
-    self._max_width = 100
+
+    self._max_width = max_width or ScrW() / 2
+    self:SetFontName(font_name or "ChatMessage.Small")
+    self._font_height = 0
 
     self._words = {}
     self._times = {}
     self._word_count = 0
 
-    self._start_time = 0
     self._real_times = {}
     self._next_time = 0
-    self._draw_text = false
+    self._driver_added = false
+    self._draw_lines = false
 end
 
 function WordDriver:Ingest(text, timepoints)
@@ -31,65 +58,105 @@ function WordDriver:Ingest(text, timepoints)
         end
     end
 
-    self._font_name = "ChatMessage.Small"
     self._words = words
     self._times = times
     self._word_count = #words
     return self
 end
 
+local sysTime, textWrap, tableConcat, stringExplode = SysTime, string.TextWrap, table.concat, string.Explode
 function WordDriver:Think()
-    if not self._active then return end
+    local next_time = self._next_time
+    if not self._active or not next_time then return end
 
-    local systime = SysTime()
-    if self._next_time <= systime then
+    local systime = sysTime()
+    if next_time <= systime then
 
         local index = self._index
 
-        self._draw_text = string.TextWrap(
+        local wrappedText = textWrap(
             self._font_name,
-            table.concat(self._words, " ", 1, index),
+            tableConcat(self._words, " ", 1, index),
             self._max_width
         )
-        self._next_time = self._start_time + self._times[index]
+        self._draw_lines = stringExplode("\n", wrappedText)
 
         index = index + 1
-        if index > self._word_count then
-            self._active = false
-            print("FINISHED")
+        if index >= self._word_count then
+            self:Stop()
             return
         end
-        self._index = index
 
+        self._next_time = self._real_times[index + 1]
+        self._index = index
     end
 end
 
-function WordDriver:Start()
+function WordDriver:Start(globally_add)
 
     -- Since we're starting, add the SysTime to the start of all word
     -- times which will actually be used when scrolling the text.
     local out, systime = {}, SysTime()
-    for i, v in ipairs(self._times) do
+    for i = 1, #self._times do
         out[i] = systime + self._times[i]
     end
 
-    self._start_time = RealTime()
     self._real_times = out
-    self._active = false
+    self._active = true
     self._index = 1
-end
 
-function WordDriver:Stop(force)
-    if force then
-        self._index = self._word_count
+    -- Add the driver to the UI if the argument is set.
+    if globally_add and not self._driver_added then
+        GNIL.GPT.Subtitles.AddWordDriver(self)
+        self._driver_added = true
     end
-    self._real_times = false
-    self._active = false
 end
 
+function WordDriver:Stop(force, driver_remove_delay)
+    self._index = self._word_count
+
+    -- If the word driver has been added globally, remove it.
+    if self._driver_added then
+        self._driver_added = false
+
+        -- Don't actually remove the driver immidiately since that looks ugly.
+        -- Do a short delay first, and then remove it afterwards.
+        local self = self
+        timer.Simple(force and 0 or (driver_remove_delay or 3), function()
+            if self then
+                GNIL.GPT.Subtitles.RemoveWordDriver(self)
+                self._active = false
+            end
+        end)
+
+    else
+        self._active = false
+    end
+end
+
+-- Return draw status and total height.
+local white, black = color_white, color_black
+local line_padding = 25
 function WordDriver:Draw(x, y)
-    if not self._active and self._index < self._word_count then return end
-    draw.SimpleTextOutlined(self._draw_text, self._font_name, x, y, color_white, TEXT_ALIGN_CENTER)
+    if not self._active and self._index < self._word_count then
+        return false, nil
+    end
+
+    local font_height, total_height, lines = self._font_height, 0, self._draw_lines
+    local lines_len = #lines
+
+    -- Start the first line at the heighest position and work down to minimum.
+    y = y - ((font_height + line_padding) * lines_len)
+
+    for i = 1, lines_len do
+
+        draw.SimpleTextOutlined(lines[i], self._font_name, x, y, white, TEXT_ALIGN_CENTER, nil, 3, black)
+
+        y = y + font_height + line_padding
+        total_height = total_height + font_height + line_padding
+    end
+
+    return true, total_height
 end
 
 return {

@@ -25,6 +25,15 @@ MODULE:GetExtension("net"):Receive("gpt_npc_speak", function()
         data.timepoints = timepoints
     end
 
+    -- Setup the subtitles.
+    local wordDriver = GNIL.GPT.Classes.WordDriver:New():Ingest(
+        data.text,
+        data.timepoints
+    )
+
+    local wordDriverId = wordDriver:GetID()
+    data.npc._word_drivers[wordDriverId] = wordDriver
+
     sound.PlayURL(data.url, "3d", function(soundChannel, _, errName)
 
         -- Handle various possible errors.
@@ -41,15 +50,20 @@ MODULE:GetExtension("net"):Receive("gpt_npc_speak", function()
         -- and then start playing.
         data.npc.Voice = soundChannel
         soundChannel:SetPos(data.npc:GetPos())
+
         soundChannel:Play()
+        wordDriver:Start(true)
 
         -- Remove the voice channel once finished.
         timer.Simple(data.length, function()
             if not IsValid(data.npc) or not IsValid(data.npc.Voice) then
                 return
             end
+
             data.npc.Voice:Stop()
             data.npc.Voice = nil
+
+            data.npc._word_drivers[wordDriverId] = nil
         end)
 
         -- TODO: Replace with some nice UI obviously.
