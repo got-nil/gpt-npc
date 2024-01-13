@@ -109,19 +109,6 @@ function GPTParameters:AddMessage(content, role, steamid)
     assert(validRoles[role], "Provided user role must be valid")
     assert(steamid == nil or isstring(steamid), "Provided steamid must be nil or a string")
 
-    -- Default to user if there isn't a role provided.
-    if not role then role = "user" end
-    if role != "user" then steamid = nil end
-    local validRoles = {
-        ["user"] = true,
-        ["assistant"] = true,
-        ["system"] = true
-    }
-
-    assert(isstring(content), "Provided content must a string")
-    assert(validRoles[role], "Provided user role must be valid")
-    assert(steamid == nil or isstring(steamid), "Provided steamid must be nil or a string")
-
     table.insert(self._messages, {
         role = role,
         content = content,
@@ -131,15 +118,6 @@ function GPTParameters:AddMessage(content, role, steamid)
 end
 
 function GPTParameters:ToTable()
-
-    -- Old messages then new ones.
-    local messages = Either(self._history_messages != nil, table.Copy(self._history_messages), {})
-    for _, v in ipairs(self._messages) do
-        table.insert(messages, {
-            role = v.role,
-            content = v.content
-        })
-    end
 
     -- Old messages then new ones.
     local messages = Either(self._history_messages != nil, table.Copy(self._history_messages), {})
