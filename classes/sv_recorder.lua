@@ -31,7 +31,7 @@ local function sendWebsocketTask(self)
     -- so its only there just incase something goes wrong.
     local cancelRecording = function()
         if self:IsRecording() then
-            self:StopRecording(true)
+            self:StopRecording(true, true)
         end
     end
 
@@ -134,8 +134,6 @@ function Recorder:StopRecording(cancelled, _no_error)
     )
     if stopped then
         self._recording = false
-
-        -- Get the recording runtime, and reset start time.
         runtime = self:GetRuntime()
         self._start_time = false
 
