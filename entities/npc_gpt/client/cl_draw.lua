@@ -1,7 +1,7 @@
 local MODULE = MODULE
 
 local IconOffset, AlphaOffset = Vector(0, 0, 18), Vector(0, 0, 64)
-local IconWidth, IconHeight, IconSize = 512, 512, 1200
+local IconWidth, IconHeight, IconSize = 512, 512, 912
 
 -- Get the materials from shared paths.
 local IconMaterials = {}
@@ -11,6 +11,18 @@ for k, v in pairs(ENT.IconMaterialPaths) do
         MODULE:log("Failed to load Icon material '" .. k .. "'.", "error")
     end
     IconMaterials[k] = mat
+end
+
+-- Animate the speaker icon by lerping between 3 different images.
+local speakerAnimStart = SysTime()
+local function animateSpeakerIcon()
+
+    local sysTime = SysTime()
+    local v = sysTime - speakerAnimStart
+    if v > 3 then
+        speakerAnimStart = sysTime
+    end
+    return "speaker-" .. (math.floor(v) + 1)
 end
 
 local CenterWidth, CenterHeight = ScrW() * .5, ScrH() * .5
@@ -45,7 +57,9 @@ function ENT:DrawTranslucent()
     if dotAlpha < alpha then alpha = dotAlpha end
     if alpha < 0.2 then return end
 
+    -- Get the icon name, and also support icon animations.
     local iconName = stateHandler.Icon
+    if iconName == "speaker" then iconName = animateSpeakerIcon() end
     local iconMaterial = iconName and IconMaterials[iconName]
     local showNameplate = stateHandler.showNameplate or true
     local paintFn = stateHandler.Paint
@@ -61,9 +75,12 @@ function ENT:DrawTranslucent()
         -- If there is a valid head, use that as the base position
         -- otherwise get it offset from the bounding box center.
         -- I was told this was the best way to handle wacky models.
-        local base = Either(head and head.Pos, head.Pos, (
-            self:LocalToWorld(self:OBBCenter()) + self:GetUp() * 24
-        ))
+        local base
+        if head != nil and head.Pos then
+            base = head
+        else
+            base = self:LocalToWorld(self:OBBCenter()) + self:GetUp() * 30
+        end
         local pos = base + eyesAngle:Up()
 
         -- Turn to face player.
@@ -75,7 +92,7 @@ function ENT:DrawTranslucent()
 
             if iconMaterial then
                 surface.SetMaterial(iconMaterial)
-                surface.SetDrawColor(0, 0, 0, 255)
+                surface.SetDrawColor(unpack(stateHandler.IconDrawColor or {0, 0, 0, 255}))
                 surface.DrawTexturedRect(-IconSize / 2, -IconSize * 1.8, IconSize, IconSize)
             end
 
@@ -89,12 +106,13 @@ function ENT:DrawTranslucent()
 
             end
 
+            -- Reset the surface alpha before any custom paint func.
+            surface.SetAlphaMultiplier(1)
             if paintFn then
                 paintFn(self)
             end
 
         cam.End3D2D()
-        surface.SetAlphaMultiplier(1)
 
     end
 end
