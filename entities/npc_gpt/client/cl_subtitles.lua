@@ -1,27 +1,15 @@
-
---[[
-
-    I hate this shit so bad.
-    We have a basic WordDriver implementation based on raptors original one.
-
-    TODO:
-     - Actually show the word driver in HUDPaint.
-     - Support multiple word drivers going at once (move existing up a bit for it).
-     - Add start/finish events to the driver.
-
---]]
-
 local MODULE = MODULE
 GNIL.GPT.Subtitles = GNIL.GPT.Subtitles or {}
 
-local wordDrivers, wordDriversLen, padding = {}, 0, 50
+local wordDrivers, wordDriversLen, padding = {}, 0, 0
 
 // Cache base values.
 local scrh, base_x, y = 0, 0, 0
 local function setBasePositions()
 
     scrh = ScrH()
-    x, base_y = ScrW() / 2, scrh - (scrh / 10)
+    x, base_y = ScrW() / 2, scrh - (scrh / 8)
+    padding = (scrh / 8) / 2
 
 end
 setBasePositions()
@@ -57,9 +45,7 @@ MODULE:AddHook("HUDPaint", "paint_subtitles", function()
         end
 
         y = y - height - padding
-
     end
-
 end)
 
 function GNIL.GPT.Subtitles.AddWordDriver(wordDriver, position)

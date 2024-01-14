@@ -15,7 +15,6 @@ MODULE:RequireExtension("net")
 
 GNIL.GPT = GNIL.GPT or {
     Classes = {},
-    Interaction = {},
     Recording = {},
     Mute = {},
     Input = {},

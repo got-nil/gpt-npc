@@ -41,7 +41,7 @@ ENT.StateHandlers = {
 
             -- Tell the user when the recording has finished.
             local finishedRecording = function()
-                if self.Recorder then
+                if self.Recorder and IsValid(target) then
                     target:ChatMessage("Finished/Stopped recording!")
                 end
             end
