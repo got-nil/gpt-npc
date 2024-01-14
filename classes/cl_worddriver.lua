@@ -148,7 +148,7 @@ function WordDriver:Stop(force, driver_remove_delay)
 end
 
 -- Return draw status and total height.
-local white, black = color_white, color_black
+local white, black, background = color_white, color_black, Color(20, 20, 20, 180)
 local line_padding = 25
 function WordDriver:Draw(x, y)
     if not self._active and self._index < self._word_count then
@@ -160,13 +160,20 @@ function WordDriver:Draw(x, y)
 
     -- Start the first line at the heighest position and work down to minimum.
     y = y - ((font_height + line_padding) * lines_len)
+    local start_y = y
 
+    local padding = (ScrH() / 10) / 4
+    local total_height = (font_height + line_padding) * lines_len
+
+    -- Draw the subtitles background.
+    local scrw = ScrW()
+    local w = scrw / 8
+    draw.RoundedBox(0, w, start_y - padding, scrw - (w * 2), total_height + (padding * 2), background)
+
+    -- Draw lines.
     for i = 1, lines_len do
-
-        draw.SimpleTextOutlined(lines[i], self._font_name, x, y, white, TEXT_ALIGN_CENTER, nil, 3, black)
-
+        draw.SimpleTextOutlined(lines[i], self._font_name, x, y, white, TEXT_ALIGN_CENTER, TEXT_ALIGN_LEFT, 3, black)
         y = y + font_height + line_padding
-        total_height = total_height + font_height + line_padding
     end
 
     return true, total_height
