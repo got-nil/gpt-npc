@@ -1,5 +1,5 @@
 local MODULE, config = MODULE, MODULE:Config()
-GNIL.GPT.Voice = GNIL.GPT.Voice or {
+GNIL.GPT.Recording = GNIL.GPT.Recording or {
     ["_listening"] = {}
 }
 
@@ -14,7 +14,7 @@ eightbit.EnableBroadcast(not isDebug)
 -- Generate a 15 digit integer to be used as the voice_id. The total
 -- identifier is 17, with the last two being used for terminator control.
 -- Use the current time as start to reduce chances of collision.
-function GNIL.GPT.Voice.GenerateID()
+function GNIL.GPT.Recording.GenerateID()
     local out = string.Explode("", tostring(os.time()))
     for i = 1, 15 - #out do
         table.insert(out, math.random(1, 9))
@@ -22,38 +22,38 @@ function GNIL.GPT.Voice.GenerateID()
     return table.concat(out)
 end
 
-function GNIL.GPT.Voice.Start(userid, voice_id)
+function GNIL.GPT.Recording.Start(userid, voice_id)
     assert(isnumber(userid), "The provided userid MUST be a number")
     assert(isstring(voice_id) and #voice_id == 15, "The provided voice_id MUST be a 15 digit string")
 
     if eightbit.IsRecording(userid) then return false end
     if eightbit.StartRecording(userid, voice_id) then
-        GNIL.GPT.Voice["_listening"][tostring(userid)] = true
+        GNIL.GPT.Recording["_listening"][tostring(userid)] = true
         return true
     end
     return false
 end
 
-function GNIL.GPT.Voice.Stop(userid, cancelled)
+function GNIL.GPT.Recording.Stop(userid, cancelled)
     assert(isnumber(userid), "The provided userid MUST be a number")
     assert(cancelled == nil or isbool(cancelled), "Cancelled MUST either be nil or boolean")
 
     if cancelled == nil then cancelled = false end
     if eightbit.StopRecording(userid, cancelled) then
-        GNIL.GPT.Voice["_listening"][tostring(userid)] = nil
+        GNIL.GPT.Recording["_listening"][tostring(userid)] = nil
         return true
     end
     return false
 end
 
-function GNIL.GPT.Voice.IsRecording(userid)
+function GNIL.GPT.Recording.IsRecording(userid)
     assert(isnumber(userid), "The provided userid MUST be a number")
     return eightbit.IsRecording(userid)
 end
 
-function GNIL.GPT.Voice.AllRecording(as_players)
+function GNIL.GPT.Recording.AllRecording(as_players)
     local userids = {}
-    for k, v in pairs(GNIL.GPT.Voice["_listening"]) do
+    for k, v in pairs(GNIL.GPT.Recording["_listening"]) do
         if v then
             table.insert(userids, v)
         end
@@ -79,7 +79,7 @@ end
 -- unordered_map entirely, so its basically garbage collection.
 gameevent.Listen("player_disconnect")
 MODULE:AddHook("player_disconnect", "GPT.Voice.GC", function(data)
-    if GNIL.GPT.Voice["_listening"][tostring(data.userid)] then
-        GNIL.GPT.Voice.Stop(data.userid, true)
+    if GNIL.GPT.Recording["_listening"][tostring(data.userid)] then
+        GNIL.GPT.Recording.Stop(data.userid, true)
     end
 end)
