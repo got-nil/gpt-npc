@@ -1,5 +1,7 @@
+local MODULE = MODULE
 
-local MODULE, GPTWebsocket = MODULE, GNIL.Thirdparty.middleclass("GPTWebsocket", GNIL.Classes.Websocket)
+---@class GPT.Websocket: Websocket
+local GPTWebsocket = GNIL.Thirdparty.middleclass("GPTWebsocket", GNIL.Classes.Websocket)
 
 --[[
 
@@ -13,6 +15,10 @@ function GPTWebsocket:Initialize()
 
     -- Initialize base websocket connection.
     local conf = MODULE:Config()
+    if not conf then
+        error("Could not load GPT configuration required for Websocket")
+    end
+
     GNIL.Classes.Websocket.Initialize(
         self,
         conf:Get("ws_host"),
@@ -23,6 +29,7 @@ function GPTWebsocket:Initialize()
     self:SetHeader("Authorization", conf:Get("ws_token"))
 end
 
+---@param message string
 function GPTWebsocket:OnMessage(message)
 
     local data = util.JSONToTable(message)
@@ -70,8 +77,6 @@ function GPTWebsocket:OnMessage(message)
     else
         task:Error(GNIL_GPT_ERRORS_INVALID, out)
     end
-
-    return
 end
 
 function GPTWebsocket:OnConnected()
@@ -96,8 +101,8 @@ function GPTWebsocket:OnConnected()
 
 end
 
--- Cancel all pending sent tasks since a websocket disconnect
--- probably also means that the API state has reset.
+---Cancel all pending sent tasks since a websocket disconnect
+---probably also means that the API state has reset.
 function GPTWebsocket:OnDisconnected()
     MODULE:log("Websocket disconnected!", "debug")
     GNIL.GPT.Tasks.RemoveAll("Websocket has disconnected.", true)

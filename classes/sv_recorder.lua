@@ -1,7 +1,12 @@
-local MODULE, Recorder = MODULE, GNIL.Thirdparty.middleclass("Recorder")
-    :IncludeMixin(GNIL.ClassMixins.Events)
-    :IncludeMixin(GNIL.ClassMixins.Promise)
 
+---@class GPT.Recorder: GPT.Promise
+---@field _userid string
+---@field _voice_id? string
+---@field _task? GPT.Task
+---@field _recording? boolean
+---@field _raw_recording? boolean
+---@field _timeout? integer
+local Recorder = GNIL.Thirdparty.middleclass("Recorder", GNIL.GPT.Classes.Promise)
 ClassAccessorFunc(Recorder, {
     UserID = FuncAccessors.ReadOnly("_userid"),
     VoiceID = FuncAccessors.ReadOnly("_voice_id"),
@@ -68,7 +73,7 @@ end
 
 function Recorder:Initialize(userid)
     self._userid = userid
-    self._voice_id = GNIL.GPT.Voice.GenerateID()
+    self._voice_id = GNIL.GPT.Recording.GenerateID()
     self._recording = false
     self._task = false
     self._start_time = false
@@ -80,6 +85,8 @@ function Recorder:Initialize(userid)
     self._raw_recording = false
 end
 
+---Start sending voice packets to relay server.
+---@return boolean
 function Recorder:StartRecording()
 
     if self._recording then
@@ -91,7 +98,7 @@ function Recorder:StartRecording()
         return false
     end
 
-    local started = GNIL.GPT.Voice.Start(
+    local started = GNIL.GPT.Recording.Start(
         self._userid,
         self._voice_id
     )
@@ -112,7 +119,9 @@ function Recorder:StartRecording()
     return started
 end
 
--- Returns: runtime: float
+---Get recording runtime.
+---**This is not how long the actual audio is, just how long its been since StartRecording was called.**
+---@return number
 function Recorder:GetRuntime()
     if not self._start_time then
         return 0.00
@@ -120,15 +129,22 @@ function Recorder:GetRuntime()
     return SysTime() - self._start_time
 end
 
+
 -- Returns: stopped: bool, runtime: bool|float
+
+---Send terminator packet to stop voice streaming.
+---@param cancelled boolean Was the recording cancelled?
+---@param _no_error boolean Don't reject the recorder promise because we're cancelling.
+---@return boolean SuccessState
+---@return number RecordingRuntime
 function Recorder:StopRecording(cancelled, _no_error)
 
     assert(cancelled == nil or isbool(cancelled), "Cancelled argument must either be nil or boolean.")
     if not self._recording then
-        return false
+        return false, 0
     end
 
-    local runtime, stopped = false, GNIL.GPT.Voice.Stop(
+    local runtime, stopped = 0, GNIL.GPT.Recording.Stop(
         self._userid,
         cancelled
     )
@@ -145,6 +161,8 @@ function Recorder:StopRecording(cancelled, _no_error)
     return stopped, runtime
 end
 
+---Convert Recorder to table.
+---@return {voice_id: string, raw: boolean}
 function Recorder:ToTable()
     return {
         voice_id = self._voice_id,

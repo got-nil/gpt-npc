@@ -1,4 +1,5 @@
 
+---@class GPT.Parameters.TTS: middleclass
 local TTSParameters = GNIL.Thirdparty.middleclass("TTSParameters")
 ClassAccessorFunc(TTSParameters, {
     Provider = FuncAccessors.Enum("_provider", GNIL_GPT_SPEECH_PROVIDER_COUNT),
@@ -25,6 +26,8 @@ function TTSParameters:Initialize(gender, voice_id, provider)
     if provider then self:SetProvider(provider) end
 end
 
+---Convert TTSParameters to table.
+---@return {provider: number, voice_id: string, gender?: string}
 function TTSParameters:ToTable()
     return {
         provider = self._provider,
@@ -35,6 +38,7 @@ end
 
 --------------------------------------------------------
 
+---@class GPT.Parameters.GPT: middleclass
 local GPTParameters = GNIL.Thirdparty.middleclass("GPTParameters")
 ClassAccessorFunc(GPTParameters, {
     SystemPrompt = {
@@ -58,7 +62,11 @@ function GPTParameters:Initialize(system_prompt)
     self._history_target = false
 end
 
--- Only used if the task is passed through a brain.
+---Set the target history key for message.
+---Only used if the task is passed through a brain.
+---@param steamid Player|string
+---@param count? number
+---@return self
 function GPTParameters:SetHistory(steamid, count)
 
     -- If a player is provided, convert it to a steam64id.
@@ -72,6 +80,12 @@ function GPTParameters:SetHistory(steamid, count)
     return self
 end
 
+---Add GPT function.
+---@param name string|{name: string, description: string, parameters: table}
+---@param description? string
+---@param parameters? table
+---@param index? number
+---@return self
 function GPTParameters:AddFunction(name, description, parameters, index)
 
     -- Allow a table to be used as arguments instead.
@@ -94,6 +108,11 @@ function GPTParameters:AddFunction(name, description, parameters, index)
     return self
 end
 
+---Add message to be provided as history to GPT.
+---@param content string
+---@param role? string
+---@param steamid? string
+---@return self
 function GPTParameters:AddMessage(content, role, steamid)
 
     -- Default to user if there isn't a role provided.
@@ -117,6 +136,8 @@ function GPTParameters:AddMessage(content, role, steamid)
     return self
 end
 
+---Convert GPTParameters to table.
+---@return {messages: GPT.History.Message[], system_prompt: boolean|string, functions: table?}
 function GPTParameters:ToTable()
 
     -- Old messages then new ones.

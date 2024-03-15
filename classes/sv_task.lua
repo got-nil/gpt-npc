@@ -1,7 +1,6 @@
 
-local Task = GNIL.Thirdparty.middleclass("Task")
-    :IncludeMixin(GNIL.ClassMixins.Events)
-    :IncludeMixin(GNIL.ClassMixins.Promise)
+---@class GPT.Task: GPT.Promise
+local Task = GNIL.Thirdparty.middleclass("Task", GNIL.Net.Classes.Promise)
 
 ClassAccessorFunc(Task, {
     ID = FuncAccessors.ReadOnly("_id"),
@@ -19,6 +18,8 @@ function Task:Initialize(id, name, ...)
     assert(self._base != nil, "Provided task base '" .. name .. "' does not exist.")
 end
 
+---Validate task arguments against base.
+---@return boolean SuccessState
 function Task:ValidateArguments()
 
     -- If there is no validator function, accept anything.

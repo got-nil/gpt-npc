@@ -1,5 +1,8 @@
+local MODULE = MODULE
 
-local MODULE, Brain = MODULE, GNIL.Thirdparty.middleclass("Brain"):IncludeMixin(GNIL.ClassMixins.Events)
+---@class GPT.Brain: EventsMixin
+---@field _history GPT.History
+local Brain = GNIL.Thirdparty.middleclass("Brain"):IncludeMixin(GNIL.ClassMixins.Events)
 ClassAccessorFunc(Brain, {
     Gender = FuncAccessors.ReadOnly("_gender"),
     TTSParameters = FuncAccessors.ReadOnly("_tts_params"),
@@ -12,7 +15,10 @@ function Brain:Initialize(gender)
     self._tts_params = GNIL.GPT.Classes.TTSParameters:New(gender)
 end
 
--- GPT -> TTS.
+---GPT -> TTS.
+---@param gpt_params GPT.Parameters.GPT
+---@param tts_params GPT.Parameters.TTS
+---@return GPT.Promise
 function Brain:Think(gpt_params, tts_params)
 
     assert(istable(gpt_params), "Provided gpt_params should be GPTParameters class instance.")
@@ -21,7 +27,7 @@ function Brain:Think(gpt_params, tts_params)
     -- Start GPT task.
     local gpt = self:GPT(gpt_params)
     if not gpt then return false end
-    local promise = GNIL.GPT.Classes.CancellablePromise:New()
+    local promise = GNIL.GPT.Classes.Promise:New()
 
     -- Attach GPT task callbacks, either rejecting promise
     -- or starting TTS task to generate the mp3 URL.
@@ -63,14 +69,9 @@ function Brain:Think(gpt_params, tts_params)
     return promise
 end
 
-function Brain:ClearHistory(steamid)
-    if IsPlayer(steamid) then
-        steamid = steamid:SteamID64()
-    end
-    assert(isstring(steamid), "Provided steamid must be a valid string")
-    return self._history:Clear(steamid)
-end
-
+---Run GPT task.
+---@param gpt_params GPT.Parameters.GPT
+---@return GPT.Task
 function Brain:GPT(gpt_params)
 
     local task = GNIL.GPT.Tasks.Create("gpt", gpt_params)
@@ -117,6 +118,10 @@ function Brain:GPT(gpt_params)
     return task
 end
 
+---Run TTS task.
+---@param text string
+---@param tts_params? GPT.Parameters.TTS Uses Brain's default TTSParameters if none are provided.
+---@return GPT.Task
 function Brain:TTS(text, tts_params)
 
     if not tts_params then
@@ -128,6 +133,18 @@ function Brain:TTS(text, tts_params)
 
     task:Run()
     return task
+end
+
+---Clear all history for a given SteamID64.
+---@param steamid Player|string
+---@return self
+function Brain:ClearHistory(steamid)
+    if IsPlayer(steamid) then
+        steamid = steamid:SteamID64()
+    end
+    assert(isstring(steamid), "Provided steamid must be a valid string")
+    self._history:Clear(steamid)
+    return self
 end
 
 return {

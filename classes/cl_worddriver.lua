@@ -1,3 +1,12 @@
+
+---@class GPT.WordDriver: middleclass
+---@field _id string
+---@field protected _active boolean
+---@field protected _index number
+---@field protected _max_width number
+---@field protected _font_name string
+---@field protected _font_height number
+---@field protected _words string[]
 local WordDriver = GNIL.Thirdparty.middleclass("WordDriver")
 ClassAccessorFunc(WordDriver, {
     ID = FuncAccessors.ReadOnly("_id"),

@@ -1,9 +1,5 @@
 
-local MODULE, History = MODULE, GNIL.Thirdparty.middleclass("History"):IncludeMixin(GNIL.ClassMixins.Events)
-
-function History:Initialize()
-    self._messages = {}
-end
+---@alias GPT.History.Message {role: string, content: string}
 
 --[[
 
@@ -16,7 +12,18 @@ end
         historyclearall - All history being cleared.
 
 --]]
+---@class GPT.History: EventsMixin
+---@field _messages table<string, GPT.History.Message[]>
+local History = GNIL.Thirdparty.middleclass("History"):IncludeMixin(GNIL.ClassMixins.Events)
 
+function History:Initialize()
+    self._messages = {}
+end
+
+---Add a new message to history.
+---@param key string History key. This is usually the players SteamID64.
+---@param message_data GPT.History.Message
+---@return boolean
 function History:AddMessage(key, message_data)
 
     assert(isstring(key), "Provided history key must be a string.")
@@ -36,6 +43,9 @@ function History:AddMessage(key, message_data)
     return true
 end
 
+---Clear all existing history for a given key.
+---@param key string History key, usually a SteamID64.
+---@return self
 function History:Clear(key)
     assert(isstring(key), "Provided key must be a string, use ClearAll if you dont want a specific key.")
     self:EmitSignal("historyclear", key)
@@ -43,12 +53,18 @@ function History:Clear(key)
     return self
 end
 
+---Clear all existing history.
+---@return self
 function History:ClearAll()
     self:EmitSignal("historyclearall")
     self._messages = {}
     return self
 end
 
+---Get all existing history for a given key.
+---@param key string History key, usually a SteamID64.
+---@param limit? number Max amount of history.
+---@return GPT.History.Message[]
 function History:GetHistory(key, limit)
 
     assert(isstring(key), "Provided history key must be a string.")
