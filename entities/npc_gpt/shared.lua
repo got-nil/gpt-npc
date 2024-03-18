@@ -13,11 +13,15 @@ ENT.StateHandlers = ENT.StateHandlers or {}
 
 ENT.IconMaterialPaths = {
 
-    ["Alert"]       = "gpt-npc/images/alert.png",
-    ["Brain"]       = "gpt-npc/images/brain.png",
-    ["Female"]      = "gpt-npc/images/female.png",
-    ["Male"]        = "gpt-npc/images/male.png",
-    ["Recording"]   = "gpt-npc/images/recording.png"
+    ["alert"]       = "gpt-npc/images/alert.png",
+    ["brain"]       = "gpt-npc/images/brain.png",
+    ["female"]      = "gpt-npc/images/female.png",
+    ["male"]        = "gpt-npc/images/male.png",
+    ["microphone"]  = "gpt-npc/images/microphone.png",
+
+    ["speaker-1"]     = "gpt-npc/images/speaker-1.png",
+    ["speaker-2"]     = "gpt-npc/images/speaker-2.png",
+    ["speaker-3"]     = "gpt-npc/images/speaker-3.png",
 
 }
 

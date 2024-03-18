@@ -8,12 +8,12 @@
 ---@field _timeout? integer
 local Recorder = GNIL.Thirdparty.middleclass("Recorder", GNIL.GPT.Classes.Promise)
 ClassAccessorFunc(Recorder, {
-    UserID = FuncAccessors.ReadOnly("_userid"),
-    VoiceID = FuncAccessors.ReadOnly("_voice_id"),
-    Task = FuncAccessors.ReadOnly("_task"),
-    Recording = FuncAccessors.Boolean("_recording"),
-    Raw = FuncAccessors.Boolean("_raw_recording"),
-    Timeout = FuncAccessors.NumberMinMax("_timeout", 0, nil, {
+    UserID = FuncAccessors.ReadOnly("_userid"), ---@accessor string readonly
+    VoiceID = FuncAccessors.ReadOnly("_voice_id"), ---@accessor string? readonly
+    Task = FuncAccessors.ReadOnly("_task"), ---@accessor GPT.Task? readonly
+    Recording = FuncAccessors.Boolean("_recording"), ---@accessor boolean? is
+    Raw = FuncAccessors.Boolean("_raw_recording"), ---@accessor boolean? is
+    Timeout = FuncAccessors.NumberMinMax("_timeout", 0, nil, { ---@accessor number?
         nillable = true
     })
 })

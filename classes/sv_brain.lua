@@ -4,9 +4,9 @@ local MODULE = MODULE
 ---@field _history GPT.History
 local Brain = GNIL.Thirdparty.middleclass("Brain"):IncludeMixin(GNIL.ClassMixins.Events)
 ClassAccessorFunc(Brain, {
-    Gender = FuncAccessors.ReadOnly("_gender"),
-    TTSParameters = FuncAccessors.ReadOnly("_tts_params"),
-    History = FuncAccessors.ReadOnly("_history")
+    Gender = FuncAccessors.ReadOnly("_gender"), ---@accessor string readonly
+    TTSParameters = FuncAccessors.ReadOnly("_tts_params"), ---@accessor string readonly
+    History = FuncAccessors.ReadOnly("_history") ---@accessor string readonly
 })
 
 function Brain:Initialize(gender)

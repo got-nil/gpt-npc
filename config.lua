@@ -5,7 +5,7 @@ return {
     },
     config = {
 
-        default_system_prompt = "You're an NPC in a game, roleplaying as a human. Do not mention that you're an AI and remain in character.",
+        default_system_prompt = "You are a character, playing a citizen. Remain in character at all times. Keep responses conversational.",
 
         relay_ip = "127.0.0.1",
         relay_port = 8765,

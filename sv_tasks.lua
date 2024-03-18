@@ -4,7 +4,12 @@ GNIL.GPT.Tasks = GNIL.GPT.Tasks or {
     ["_r"] = {}
 }
 
--- Send task request to websocket.
+---@alias GPT.Task.Base {name: string, response: function, request?: function, validate?: function}
+
+---Send task request to websocket.
+---@param task GPT.Task
+---@param _queue_disconnected? boolean Should we queue the task if the websocket is disconnected?
+---@return boolean SuccessState
 function GNIL.GPT.Tasks.Send(task, _queue_disconnected)
 
     -- If the websocket is not connected, the task cannot
@@ -39,14 +44,18 @@ function GNIL.GPT.Tasks.Send(task, _queue_disconnected)
     return success
 end
 
--- Remove a task from sent registry. This is for when a
--- task has been replied to or cancelled.
+---Remove a task from sent registry. This is for when a
+---task has been replied to or cancelled.
+---@param task GPT.Task
 function GNIL.GPT.Tasks.Remove(task)
     GNIL.GPT.Tasks["_r"][task._id] = nil
 end
 
--- Remove all pending sent tasks, sending an Error with the
--- given reason for each. Called when websocket disconnects.
+---Remove all pending sent tasks, sending an Error with the
+---given reason for each. Called when websocket disconnects.
+---@param reason? string
+---@param _should_log? boolean Should we log this cancellation?
+---@return number RemovedTasksCount
 function GNIL.GPT.Tasks.RemoveAll(reason, _should_log)
 
     -- Call the promise error on each sent task.
@@ -64,9 +73,13 @@ function GNIL.GPT.Tasks.RemoveAll(reason, _should_log)
     return i
 end
 
--- Load all base tasks.
+---Load all base tasks.
 function GNIL.GPT.Tasks.LoadAll()
     local files, _ = MODULE:Find("tasks/*.lua")
+    if not files then
+        MODULE:log("Could not find GPT task bases!", "error")
+        return
+    end
     for _, v in ipairs(files) do
 
         -- Include the task to get table.
@@ -93,10 +106,20 @@ function GNIL.GPT.Tasks.LoadAll()
     end
 end
 
+---Get a task base by name.
+---@param name string
+---@return GPT.Task.Base?
 function GNIL.GPT.Tasks.GetBase(name) return GNIL.GPT.Tasks["_bases"][name] end
+
+---Get a task by ID.
+---@param task_id string
+---@return GPT.Task
 function GNIL.GPT.Tasks.GetTask(task_id) return GNIL.GPT.Tasks["_r"][task_id] end
 
--- Create a task with a unique ID.
+---Create a task with a unique ID.
+---@param name any
+---@param ... any Task constructor arguments.
+---@return GPT.Task?
 function GNIL.GPT.Tasks.Create(name, ...)
 
     -- Keep generating until a taskid is found that doesn't yet exist.
@@ -111,7 +134,7 @@ function GNIL.GPT.Tasks.Create(name, ...)
 
     -- Ensure that the task base also exists.
     if GNIL.GPT.Tasks.GetBase(name) == nil then
-        return false
+        return nil
     end
     return GNIL.GPT.Classes.Task:New(task_id, name, ...)
 end

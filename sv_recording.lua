@@ -11,9 +11,9 @@ if not isDebug then
 end
 eightbit.EnableBroadcast(not isDebug)
 
--- Generate a 15 digit integer to be used as the voice_id. The total
--- identifier is 17, with the last two being used for terminator control.
--- Use the current time as start to reduce chances of collision.
+---Generate a 15 digit integer to be used as the voice_id. The total
+---identifier is 17, with the last two being used for terminator control.
+---Use the current time as start to reduce chances of collision.
 function GNIL.GPT.Recording.GenerateID()
     local out = string.Explode("", tostring(os.time()))
     for i = 1, 15 - #out do
@@ -22,6 +22,10 @@ function GNIL.GPT.Recording.GenerateID()
     return table.concat(out)
 end
 
+---Start recording a userid.
+---@param userid number
+---@param voice_id string 15 digit string.
+---@return boolean SuccessState
 function GNIL.GPT.Recording.Start(userid, voice_id)
     assert(isnumber(userid), "The provided userid MUST be a number")
     assert(isstring(voice_id) and #voice_id == 15, "The provided voice_id MUST be a 15 digit string")
@@ -34,6 +38,10 @@ function GNIL.GPT.Recording.Start(userid, voice_id)
     return false
 end
 
+---Stop recording a userid.
+---@param userid number
+---@param cancelled? boolean
+---@return boolean SuccessState
 function GNIL.GPT.Recording.Stop(userid, cancelled)
     assert(isnumber(userid), "The provided userid MUST be a number")
     assert(cancelled == nil or isbool(cancelled), "Cancelled MUST either be nil or boolean")
@@ -46,14 +54,20 @@ function GNIL.GPT.Recording.Stop(userid, cancelled)
     return false
 end
 
+---Check if we're recording a given userid.
+---@param userid number
+---@return boolean
 function GNIL.GPT.Recording.IsRecording(userid)
     assert(isnumber(userid), "The provided userid MUST be a number")
     return eightbit.IsRecording(userid)
 end
 
+---Get all players that are being recorded.
+---@param as_players? boolean Should the output be a table of Player objects?
+---@return number[]|Player[] Output Table of userids, or Players if `as_players` is true.
 function GNIL.GPT.Recording.AllRecording(as_players)
     local userids = {}
-    for k, v in pairs(GNIL.GPT.Recording["_listening"]) do
+    for _, v in pairs(GNIL.GPT.Recording["_listening"]) do
         if v then
             table.insert(userids, v)
         end

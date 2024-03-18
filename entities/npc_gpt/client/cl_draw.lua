@@ -77,7 +77,7 @@ function ENT:DrawTranslucent()
         -- I was told this was the best way to handle wacky models.
         local base
         if head != nil and head.Pos then
-            base = head
+            base = head.Pos
         else
             base = self:LocalToWorld(self:OBBCenter()) + self:GetUp() * 30
         end

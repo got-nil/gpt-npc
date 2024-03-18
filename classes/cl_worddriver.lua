@@ -9,10 +9,10 @@
 ---@field protected _words string[]
 local WordDriver = GNIL.Thirdparty.middleclass("WordDriver")
 ClassAccessorFunc(WordDriver, {
-    ID = FuncAccessors.ReadOnly("_id"),
-    FontHeight = FuncAccessors.ReadOnly("_font_height"),
-    MaxWidth = {"_max_width", FORCE_NUMBER},
-    FontName = {
+    ID = FuncAccessors.ReadOnly("_id"), ---@accessor string readonly
+    FontHeight = FuncAccessors.ReadOnly("_font_height"), ---@accessor number readonly
+    MaxWidth = {"_max_width", FORCE_NUMBER}, ---@accessor number
+    FontName = { ---@accessor string
         var = "_font_name",
         force = FORCE_STRING,
         set = function(self, value)

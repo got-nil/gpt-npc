@@ -1,21 +1,26 @@
 
 ---@class GPT.Task: GPT.Promise
+---@field _id string
+---@field _name string
+---@field _arguments table
+---@field _base GPT.Task.Base
 local Task = GNIL.Thirdparty.middleclass("Task", GNIL.Net.Classes.Promise)
 
 ClassAccessorFunc(Task, {
-    ID = FuncAccessors.ReadOnly("_id"),
-    Name = FuncAccessors.ReadOnly("_name"),
-    Arguments = FuncAccessors.ReadOnly("_arguments"),
-    Base = FuncAccessors.ReadOnly("_base")
+    ID = FuncAccessors.ReadOnly("_id"), ---@accessor string readonly
+    Name = FuncAccessors.ReadOnly("_name"), ---@accessor string readonly
+    Arguments = FuncAccessors.ReadOnly("_arguments"), ---@accessor table readonly
+    Base = FuncAccessors.ReadOnly("_base") ---@accessor table readonly
 })
 
 function Task:Initialize(id, name, ...)
     self._id = id
     self._name = name
     self._arguments = {...}
-    self._base = GNIL.GPT.Tasks.GetBase(name)
 
-    assert(self._base != nil, "Provided task base '" .. name .. "' does not exist.")
+    local taskBase = GNIL.GPT.Tasks.GetBase(name)
+    assert(taskBase != nil, "Provided task base '" .. name .. "' does not exist.")
+    self._base = taskBase
 end
 
 ---Validate task arguments against base.

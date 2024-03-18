@@ -6,3 +6,9 @@ The recorder measures runtime from StartRecording -> EndRecording:
 
     Also implement some checks on the voice relay / websocket server to prevent clearly
     invalid filelengths from being sent to the transcription file.
+
+Rewrite the mute file. Good base from raptor, however the cleanup behaviour could be more
+modular from the NPC itsself with a hook or event (instead of directly cancelling interaction/recorder).
+
+Overhead icon seems to render at any distance.
++ UI looks generally dogshit. Professor has agreed

@@ -8,16 +8,22 @@ end
 
 -- TEST STATES.
 
+surface.CreateFont("MassiveText", {
+    font = "Roboto-Bold",
+    size = 1200
+})
+
 ENT.StateHandlers = {
 
-    [GNIL_GPT_NPC_STATE_IDLE] = {
+    [GNIL_GPT_NPC_STATE_IDLE]       = {
 
-        TestIconStub = false
-
+        Icon = "speaker"
+    
     },
-    [GNIL_GPT_NPC_STATE_LISTENING]  = TestIconStub("Recording"),
-    [GNIL_GPT_NPC_STATE_THINKING]   = TestIconStub("Brain"),
-    [GNIL_GPT_NPC_STATE_SPEAKING]   = TestIconStub("Female"),
-    [GNIL_GPT_NPC_STATE_BUSY]       = TestIconStub("Alert")
+
+    [GNIL_GPT_NPC_STATE_LISTENING]  = TestIconStub("microphone"),
+    [GNIL_GPT_NPC_STATE_THINKING]   = TestIconStub("brain"),
+    [GNIL_GPT_NPC_STATE_SPEAKING]   = TestIconStub("speaker"),
+    [GNIL_GPT_NPC_STATE_BUSY]       = TestIconStub("alert")
 
 }

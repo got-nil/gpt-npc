@@ -1,4 +1,4 @@
-local MODULE, Net = MODULE, MODULE:GetExtension("net")
+local MODULE, Net = MODULE, MODULE:GetExtension("Net")
 GNIL.GPT.TOS = GNIL.GPT.TOS or {
     ["_r"] = {},
     ["_c"] = nil

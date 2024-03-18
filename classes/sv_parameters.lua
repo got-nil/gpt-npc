@@ -1,10 +1,13 @@
 
 ---@class GPT.Parameters.TTS: middleclass
+---@field _provider string
+---@field _voice_id string
+---@field _gender? string
 local TTSParameters = GNIL.Thirdparty.middleclass("TTSParameters")
 ClassAccessorFunc(TTSParameters, {
-    Provider = FuncAccessors.Enum("_provider", GNIL_GPT_SPEECH_PROVIDER_COUNT),
-    Voice = {"_voice_id", FORCE_STRING},
-    Gender = {
+    Provider = FuncAccessors.Enum("_provider", GNIL_GPT_SPEECH_PROVIDER_COUNT), ---@accessor number
+    Voice = {"_voice_id", FORCE_STRING}, ---@accessor string
+    Gender = { ---@accessor string?
         var = "_gender",
         force = FORCE_STRING,
         nillable = true,
@@ -41,13 +44,13 @@ end
 ---@class GPT.Parameters.GPT: middleclass
 local GPTParameters = GNIL.Thirdparty.middleclass("GPTParameters")
 ClassAccessorFunc(GPTParameters, {
-    SystemPrompt = {
+    SystemPrompt = { ---@accessor string?
         var = "system_prompt",
         force = FORCE_STRING,
         nillable = true
     },
-    Functions = FuncAccessors.ReadOnly("_functions"),
-    Messages = FuncAccessors.ReadOnly("_messages")
+    Functions = FuncAccessors.ReadOnly("_functions"), ---@accessor table readonly
+    Messages = FuncAccessors.ReadOnly("_messages") ---@accessor table readonly
 })
 
 function GPTParameters:Initialize(system_prompt)
@@ -80,8 +83,10 @@ function GPTParameters:SetHistory(steamid, count)
     return self
 end
 
+---@alias GPT.Parameters.GPTFunction {name: string, description: string, parameters: table}
+
 ---Add GPT function.
----@param name string|{name: string, description: string, parameters: table}
+---@param name string|GPT.Parameters.GPTFunction
 ---@param description? string
 ---@param parameters? table
 ---@param index? number
@@ -89,7 +94,7 @@ end
 function GPTParameters:AddFunction(name, description, parameters, index)
 
     -- Allow a table to be used as arguments instead.
-    if istable(name) and description == nil and parameters == nil then
+    if istable(name) and description == nil and parameters == nil then ---@cast name GPT.Parameters.GPTFunction
         name = name.name
         description = name.description
         parameters = name.parameters

@@ -1,6 +1,6 @@
 local MODULE = MODULE
 
-MODULE:GetExtension("net"):Receive("gpt_npc_speak", function()
+MODULE:GetExtension("Net"):Receive("gpt_npc_speak", function()
 
     local data = {
         npc = net.ReadEntity(),

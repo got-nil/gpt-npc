@@ -11,7 +11,7 @@ MODULE.description = {
 }
 
 MODULE:RequireModule("net")
-MODULE:RequireExtension("net")
+MODULE:RequireExtension("Net")
 
 GNIL.GPT = GNIL.GPT or {
     Classes = {},

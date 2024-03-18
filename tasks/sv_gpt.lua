@@ -26,7 +26,7 @@ return {
             ["functions"] = tbl.functions
         }
     end,
-    response = function(task, data)
+    response = function(_, data)
 
         -- There is no additional processing required.
         return true, {

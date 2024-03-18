@@ -1,23 +1,25 @@
 local MODULE = MODULE
 
+MODULE:Include("entities/npc_gpt/sv_random.lua")
 GNIL.Net.AddNetworkString("gpt_npc_speak")
 
 function ENT:Initialize()
-    self:SetState(GNIL_GPT_NPC_STATE_IDLE)
 
-    self:SetModel("models/Humans/Group01/Male_01.mdl")
-    self:SetUseType(SIMPLE_USE)
-
-    -- The actual GPT "brain" that is used by the NPC.
-    -- TODO: Initialize with a random Gender.
-    self.Brain = GNIL.GPT.Classes.Brain:New("male")
+    -- Randomise the NPC Model and Gender.
+    local randomData = self:GetRandomData()
+    self.Gender = randomData.Gender
 
     -- TODO: Stop using elevenlabs as the default and actually
     -- fix whatever weird billing issue is stopping me from using
     -- GoogleCloud properly. Pretty sure I have my old card on it.
+    self.Brain = GNIL.GPT.Classes.Brain:New(randomData.Gender)
     self.Brain:GetTTSParameters():SetProvider(
         GNIL_GPT_SPEECH_PROVIDER_GOOGLECLOUD
     )
+
+    self:SetUseType(SIMPLE_USE)
+    self:SetState(GNIL_GPT_NPC_STATE_IDLE)
+    self:SetModel(randomData.Model)
 end
 
 function ENT:Use(ply)
